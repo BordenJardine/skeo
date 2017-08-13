@@ -15,12 +15,13 @@ actor = {
 	y = 8,
 	dx = 0,
 	dy = 0,
-	max_dx = 3,--max x speed
+	max_dx = 4,--max x speed
 	max_dy = 2,--max y speed
-	acc = 0.25,--acceleration
+	acc = 0.5,--acceleration
 	dcc = 0.9,--decceleration
 	size = 2,
-	anim = run_anim,
+	run_anim = run_anim,
+	cur_anim = run_anim,
 	frame = run_anim.frames[1],
 	tmr = 1,
 	flp = false,
@@ -39,12 +40,27 @@ function actor:draw()
 end
 
 function actor:update()
+	self.dx *= self.dcc
 	self:check_buttons()
 
-	--limit walk speed
+	-- limit walk speed
 	self.dx=mid(-self.max_dx,self.dx,self.max_dx)
-	--move in x
-	self.x+=self.dx
+	--animation speeds up at max speed
+	self.run_anim.tx = (abs(self.dx) >= self.max_dx) and 1 or 2
+
+	-- move in x
+	self.x += self.dx
+	printh(self.x)
+
+	-- wrap screen
+	local h_w = (self.size * 8) / 2
+	local l_bound = 0 - h_w
+	local r_bound = 128 + h_w
+	if self.x > r_bound then
+		self.x = l_bound
+	elseif  self.x < l_bound then
+		self.x = r_bound
+	end
 end
 
 function actor:check_buttons()
@@ -58,10 +74,7 @@ function actor:check_buttons()
 	elseif br then
 		self.flp = false
 		self.dx += self.acc
-	else
-		self.dx*=self.dcc
 	end
-
 end
 
 function actor:advance_frame()
@@ -69,13 +82,13 @@ function actor:advance_frame()
 	if self.anim_tx > 0 then
 		return
 	end
-	self.anim_tx = self.anim.tx
+	self.anim_tx = self.cur_anim.tx
 
 	self.anim_index += 1
-	if self.anim_index > #self.anim.frames then
+	if self.anim_index > #self.cur_anim.frames then
 		self.anim_index = 1
 	end
-	self.frame = self.anim.frames[self.anim_index]
+	self.frame = self.cur_anim.frames[self.anim_index]
 end
 
 function _init()
