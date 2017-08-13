@@ -8,9 +8,17 @@ run_anim = {
 	tx = 2
 }
 
+
+-- actor 'Class'
 actor = {
 	x = 8,
 	y = 8,
+	dx = 0,
+	dy = 0,
+	max_dx = 3,--max x speed
+	max_dy = 2,--max y speed
+	acc = 0.25,--acceleration
+	dcc = 0.9,--decceleration
 	size = 2,
 	anim = run_anim,
 	frame = run_anim.frames[1],
@@ -19,7 +27,6 @@ actor = {
 	anim_index = 1,
 	anim_tx = run_anim.tx
 }
-
 function actor:draw()
 	local h_px = (self.size * 8) / 2
 	spr(self.frame,
@@ -29,6 +36,32 @@ function actor:draw()
 		self.flp,
 		false
 	)
+end
+
+function actor:update()
+	self:check_buttons()
+
+	--limit walk speed
+	self.dx=mid(-self.max_dx,self.dx,self.max_dx)
+	--move in x
+	self.x+=self.dx
+end
+
+function actor:check_buttons()
+	local bl=btn(0) --left
+	local br=btn(1) --right
+
+	if bl and br then return end
+	if bl then
+		self.flp = true
+		self.dx -= self.acc
+	elseif br then
+		self.flp = false
+		self.dx += self.acc
+	else
+		self.dx*=self.dcc
+	end
+
 end
 
 function actor:advance_frame()
@@ -45,13 +78,11 @@ function actor:advance_frame()
 	self.frame = self.anim.frames[self.anim_index]
 end
 
-function advance_frame()
-end
-
 function _init()
 end
 
 function _update()
+	actor:update()
 end
 
 function _draw()
@@ -59,6 +90,31 @@ function _draw()
 	map(0,0,0,0,128,128)
 	actor:draw()
 	actor:advance_frame()
+end
+
+
+-- HELPER SHIT
+
+--print string with outline.
+function printo(str, startx, starty, col, col_bg)
+	print(str,startx+1,starty,col_bg)
+	print(str,startx-1,starty,col_bg)
+	print(str,startx,starty+1,col_bg)
+	print(str,startx,starty-1,col_bg)
+	print(str,startx+1,starty-1,col_bg)
+	print(str,startx-1,starty-1,col_bg)
+	print(str,startx-1,starty+1,col_bg)
+	print(str,startx+1,starty+1,col_bg)
+	print(str,startx,starty,col)
+end
+
+--print string centered with 
+--outline.
+function printc(str, x, y, col, col_bg, special_chars)
+	local len=(#str*4)+(special_chars*3)
+	local startx=x-(len/2)
+	local starty=y-2
+	printo(str,startx,starty,col,col_bg)
 end
 
 __gfx__
