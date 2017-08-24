@@ -4,6 +4,8 @@ __lua__
 
 printh("\n\n-------\n-poop-\n-------")
 
+grav = 0.15
+
 run_anim = {
 	frames = {0,2,4,6,8,10,12,14,32,34,36,38,40},
 	tx = 2
@@ -22,7 +24,7 @@ actor = {
 	dx = 0,
 	dy = 0,
 	max_dx = 4,--max x speed
-	max_dy = 2,--max y speed
+	max_dy = 5,--max y speed
 	acc = 0.5,--acceleration
 	dcc = 0.9,--decceleration
 	size = 2,
@@ -50,10 +52,16 @@ function actor:update()
 	self.dx *= self.dcc
 	self:check_buttons()
 
-	-- limit walk speed
-	self.dx=mid(-self.max_dx,self.dx,self.max_dx)
-	-- move in x
+-- apply gravity
+	self.dy += grav
+	-- speed limit
+	self.dx = mid(-self.max_dx,self.dx,self.max_dx)
+	self.dy = mid(-self.max_dy,self.dy,self.max_dy)
+
+
+	-- move
 	self.x += self.dx
+	self.y += self.dy
 
 	self:pick_animation()
 
