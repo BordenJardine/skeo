@@ -4,7 +4,7 @@ __lua__
 		
 printh("\n\n-------\n-poop-\n-------")
 
-grav = 0.15
+grav = 0.3
 
 run_anim = {
 	frames = {0,2,4,6,8,10,12,14,32,34,36,38,40},
@@ -27,6 +27,10 @@ actor = {
 	max_dy = 5,--max y speed
 	acc = 0.5,--acceleration
 	dcc = 0.9,--decceleration
+	jmp_speed = -2.5,
+	jmp_ended = false,
+	jmp_ticks = 0,
+  max_jmp_time = 8,--max time jump can be held
 	size = 2,
 	run_anim = run_anim,
 	idle_anim = idle_anim,
@@ -52,18 +56,10 @@ end
 
 function actor:update()
 	self.dx *= self.dcc
-	self:check_buttons()
+	self:check_mv_buttons()
+	self:check_jmp_button()
 
--- apply gravity
-	self.dy += grav
-	-- speed limit
-	self.dx = mid(-self.max_dx,self.dx,self.max_dx)
-	self.dy = mid(-self.max_dy,self.dy,self.max_dy)
-
-	-- move
-	self.x += self.dx
-	self.y += self.dy
-
+	self:move()
 	self:collide()
 
 	self:pick_animation()
@@ -71,7 +67,7 @@ function actor:update()
 	actor:screen_wrap()
 end
 
-function actor:check_buttons()
+function actor:check_mv_buttons()
 	local bl=btn(0) --left
 	local br=btn(1) --right
 
@@ -85,11 +81,47 @@ function actor:check_buttons()
 	end
 end
 
+function actor:check_jmp_button()
+	self.jmp_pressed = btn(5)
+	if not self.jmp_pressed then
+		self.jmp_ended = true
+		return
+	end
+
+	if self.grounded then
+		self.jmp_ticks = 0
+		self.jmp_ended = false
+	end
+
+	if self.jmp_ended then return end
+
+	printh("jump! ")
+	printh("grounded! "..(self.grounded and "true" or "false"))
+	printh("tix! "..self.jmp_ticks)
+	self.jmp_ticks += 1
+	if self.jmp_ticks < self.max_jmp_time then
+		self.dy=self.jmp_speed--keep going up while held
+	end
+end
+
+function actor:move()
+	-- apply gravity
+	self.dy += grav
+	-- speed limit
+	self.dx = mid(-self.max_dx,self.dx,self.max_dx)
+	self.dy = mid(-self.max_dy,self.dy,self.max_dy)
+
+	-- move
+	self.x += self.dx
+	self.y += self.dy
+end
+
 function actor:collide()
 	self:collide_floor()
 end
 
 function actor:collide_floor()
+	self.grounded = false
 	if self.dy<0 then
 		return false
 	end
@@ -104,10 +136,10 @@ function actor:collide_floor()
 			self.y=(flr((self.y+(sizep/2))/8)*8)-(sizep/2)
 			self.grounded=true
 			self.airtime=0
-			landed=true
+			return true
 		end
 	end
-	return landed
+	return false
 end
 
 function actor:pick_animation()
@@ -128,7 +160,7 @@ function actor:pick_animation()
 		self.run_anim.tx = 2
 	end
 
-	printh("speed: "..speed_x..""..self.cur_anim.tx)
+	-- printh("speed: "..speed_x..""..self.cur_anim.tx)
 end
 
 function actor:switch_anim(anim)

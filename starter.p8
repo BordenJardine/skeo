@@ -49,7 +49,7 @@ function intersects_box_box(
 	w1,h1,
 	x2,y2,
 	w2,h2)
-
+ 
 	local xd=x1-x2
 	local xs=w1*0.5+w2*0.5
 	if abs(xd)>=xs then return false end
