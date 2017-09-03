@@ -85,12 +85,11 @@ function actor:check_jmp_button()
 	self.jmp_pressed = btn(5)
 	if not self.jmp_pressed then
 		self.jmp_ended = true
+		if self.grounded then -- kind of a hakk to keep you from re-jumping
+			self.jmp_ticks = 0
+			self.jmp_ended = false
+		end
 		return
-	end
-
-	if self.grounded then
-		self.jmp_ticks = 0
-		self.jmp_ended = false
 	end
 
 	if self.jmp_ended then return end
@@ -100,7 +99,7 @@ function actor:check_jmp_button()
 	printh("tix! "..self.jmp_ticks)
 	self.jmp_ticks += 1
 	if self.jmp_ticks < self.max_jmp_time then
-		self.dy=self.jmp_speed--keep going up while held
+		self.dy=self.jmp_speed -- keep going up while held
 	end
 end
 
