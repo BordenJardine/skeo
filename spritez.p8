@@ -8,14 +8,21 @@ grav = 0.3
 
 run_anim = {
 	frames = {0,2,4,6,8,10,12,14,32,34,36,38,40},
-	tx = 2
+	tx = 2,
+	loop = true
 }
 
 idle_anim = {
 	frames = {42,44},
-	tx = 30
+	tx = 30,
+	loop = true
 }
 
+jmp_anim = {
+	frames = {8,10,12,14},
+	tx = 2,
+	loop = false
+}
 
 -- actor 'class'
 actor = {
@@ -33,6 +40,7 @@ actor = {
   max_jmp_time = 8,--max time jump can be held
 	size = 2,
 	run_anim = run_anim,
+	jmp_anim = jmp_anim,
 	idle_anim = idle_anim,
 	cur_anim = idle_anim,
 	frame = idle_anim.frames[1],
@@ -55,6 +63,7 @@ function actor:draw()
 end
 
 function actor:update()
+	-- slow down
 	self.dx *= self.dcc
 	self:check_mv_buttons()
 	self:check_jmp_button()
@@ -94,9 +103,6 @@ function actor:check_jmp_button()
 
 	if self.jmp_ended then return end
 
-	printh("jump! ")
-	printh("grounded! "..(self.grounded and "true" or "false"))
-	printh("tix! "..self.jmp_ticks)
 	self.jmp_ticks += 1
 	if self.jmp_ticks < self.max_jmp_time then
 		self.dy=self.jmp_speed -- keep going up while held
@@ -142,21 +148,32 @@ function actor:collide_floor()
 end
 
 function actor:pick_animation()
-	local speed_x = abs(self.dx)
-	local idle_speed = 0.1
-	if self.cur_anim != self.run_anim and speed_x > idle_speed then
-		self:switch_anim(self.run_anim)
-	elseif self.cur_anim == self.run_anim and speed_x <= idle_speed then
-		self:switch_anim(self.idle_anim)
+	-- jumping
+	local jumping = not self.grounded and not self.jmp_ended
+	if self.cur_anim != self.jmp_anim and jumping then
+		self:switch_anim(self.jmp_anim)
+		return
 	end
 
-	-- running animation rate changes based on your speed
-	if (speed_x >= self.max_dx) then
-		self.run_anim.tx = 1
-	elseif (speed_x < self.max_dx / 3) then
-		self.run_anim.tx = 3
-	else
-		self.run_anim.tx = 2
+	-- running
+	if self.grounded then
+		local speed_x = abs(self.dx)
+		local idle_speed = 0.1
+		if self.cur_anim != self.run_anim and speed_x > idle_speed then
+			self:switch_anim(self.run_anim)
+		elseif self.cur_anim == self.run_anim and speed_x <= idle_speed then
+			self:switch_anim(self.idle_anim)
+		end
+		if self.cur_anim == self.run_anim then
+			-- running animation rate changes based on your speed
+			if (speed_x >= self.max_dx) then
+				self.run_anim.tx = 1
+			elseif (speed_x < self.max_dx / 3) then
+				self.run_anim.tx = 3
+			else
+				self.run_anim.tx = 2
+			end
+		end
 	end
 
 	-- printh("speed: "..speed_x..""..self.cur_anim.tx)
@@ -186,7 +203,7 @@ function actor:advance_frame()
 	self.anim_tx = self.cur_anim.tx
 
 	self.anim_index += 1
-	if self.anim_index > #self.cur_anim.frames then
+	if self.anim_index > #self.cur_anim.frames and self.cur_anim.loop then
 		self.anim_index = 1
 	end
 	self.frame = self.cur_anim.frames[self.anim_index]
