@@ -20,7 +20,7 @@ idle_anim = {
 
 jmp_anim = {
 	frames = {8,10,12,14},
-	tx = 2,
+	tx = 1,
 	loop = false
 }
 
@@ -149,9 +149,9 @@ end
 
 function actor:pick_animation()
 	-- jumping
-	local jumping = not self.grounded and not self.jmp_ended
-	if self.cur_anim != self.jmp_anim and jumping then
-		self:switch_anim(self.jmp_anim)
+	local jumping = self.jmp_ticks == 1 -- sorta hacky...
+	if jumping then
+		self:start_anim(self.jmp_anim)
 		return
 	end
 
@@ -160,9 +160,9 @@ function actor:pick_animation()
 		local speed_x = abs(self.dx)
 		local idle_speed = 0.1
 		if self.cur_anim != self.run_anim and speed_x > idle_speed then
-			self:switch_anim(self.run_anim)
+			self:start_anim(self.run_anim)
 		elseif self.cur_anim == self.run_anim and speed_x <= idle_speed then
-			self:switch_anim(self.idle_anim)
+			self:start_anim(self.idle_anim)
 		end
 		if self.cur_anim == self.run_anim then
 			-- running animation rate changes based on your speed
@@ -179,9 +179,10 @@ function actor:pick_animation()
 	-- printh("speed: "..speed_x..""..self.cur_anim.tx)
 end
 
-function actor:switch_anim(anim)
+function actor:start_anim(anim)
 	self.cur_anim = anim
-	self.anim_tx = 0
+	self.anim_tx = self.cur_anim.tx
+	self.anim_index = 1
 end
 
 function actor:screen_wrap()
@@ -198,6 +199,7 @@ end
 function actor:advance_frame()
 	self.anim_tx -= 1
 	if self.anim_tx > 0 then
+		-- frame is longer than one tick
 		return
 	end
 	self.anim_tx = self.cur_anim.tx
