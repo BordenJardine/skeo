@@ -26,7 +26,7 @@ jmp_anim = {
 
 clmb_anim = {
 	frames = {132,134,136,134,132,128,130,128},
-	tx = 4,
+	tx = 2,
 	loop = true
 }
 
@@ -38,8 +38,11 @@ actor = {
 	dy = 0,
 	max_dx = 4,--max x speed
 	max_dy = 5,--max y speed
+	max_clmb_dx=0.5,--max climb speed
+	max_clmb_dy=2,--max climb speed
 	acc = 0.5,--acceleration
 	dcc = 0.9,--decceleration
+	clmb_dcc = 0.8,--decceleration
 	jmp_speed = -2.5,
 	jmp_ended = false,
 	jmp_ticks = 0,
@@ -47,12 +50,14 @@ actor = {
 	size = 2,
 	run_anim = run_anim,
 	jmp_anim = jmp_anim,
-	idle_anim = clmb_anim,
+	idle_anim = idle_anim,
+	clmb_anim = clmb_anim,
 	cur_anim = idle_anim,
 	frame = idle_anim.frames[1],
 	airtime = 0,
 	grounded = false,
 	on_ladder = false,
+	climbing = false,
 	tmr = 1,
 	flp = false,
 	anim_index = 1,
@@ -71,7 +76,6 @@ end
 
 function actor:update()
 	-- slow down
-	self.dx *= self.dcc
 	self:check_run_buttons()
 	self:check_clmb_buttons()
 	self:check_jmp_button()
@@ -99,16 +103,27 @@ function actor:check_run_buttons()
 end
 
 function actor:check_clmb_buttons()
+	if not self.on_ladder then
+		self.climbing = false
+		return 
+	end
+
 	local bu=btn(2) -- up
 	local bd=btn(3) -- down
 
+	if bu or bd then
+		self.climbing = true
+	elseif self.climbing then
+		-- not pressing any buttons, but we are in climb mode: hold still
+		self.dy = 0
+	end
 	if bu and bd then return end
-	if bl then
+	if bu then
 		self.flp = true
-		self.dx -= self.acc
-	elseif br then
+		self.dy -= self.acc
+	elseif bd then
 		self.flp = false
-		self.dx += self.acc
+		self.dy += self.acc
 	end
 end
 
@@ -132,11 +147,22 @@ function actor:check_jmp_button()
 end
 
 function actor:move()
-	-- apply gravity
-	self.dy += grav
-	-- speed limit
-	self.dx = mid(-self.max_dx,self.dx,self.max_dx)
-	self.dy = mid(-self.max_dy,self.dy,self.max_dy)
+	if self.climbing then
+		--decel
+		self.dx *= self.clmb_dcc
+		-- speed limit
+		self.dx *= self.dcc
+		self.dy = mid(-self.max_clmb_dy,self.dy,self.max_clmb_dy)
+		self.dx = mid(-self.max_clmb_dx,self.dx,self.max_clmb_dx)
+	else
+		--decel
+		self.dx *= self.dcc
+		-- apply gravity
+		self.dy += grav
+		-- speed limit
+		self.dx = mid(-self.max_dx,self.dx,self.max_dx)
+		self.dy = mid(-self.max_dy,self.dy,self.max_dy)
+	end
 
 	-- move
 	self.x += self.dx
@@ -160,11 +186,8 @@ function actor:collide_ladder()
 	-- tl, tr, bl, br
 	local points = {
 		{x, y - hs},
-		{x, y + hs},
 		-- {x - qs, y - hs}, can uncomment these if ladderin is too unforgiving
 		-- {x + qs, y - hs},
-		-- {x - qs, y + hs},
-		-- {x + qs, y + hs}
 	}
 
 	for p in all(points) do
@@ -200,6 +223,16 @@ function actor:collide_floor()
 end
 
 function actor:pick_animation()
+	--climbing
+	if self.climbing then
+		if self.cur_anim != self.clmb_anim then
+			self:start_anim(self.clmb_anim)
+		end
+		local speed = max(abs(self.dy), abs(self.dx))
+		self:set_anim_rate(speed, self.max_dx)
+		return
+	end
+
 	-- jumping
 	local jumping = self.jmp_ticks == 1 -- sorta hacky...
 	if jumping then
@@ -213,19 +246,29 @@ function actor:pick_animation()
 		local idle_speed = 0.1
 		if self.cur_anim != self.run_anim and speed_x > idle_speed then
 			self:start_anim(self.run_anim)
-		elseif self.cur_anim != self.idle_anim and speed_x <= idle_speed then
+		elseif self.cur_anim != self.idle_anim and speed_x < idle_speed then
+			-- idle
 			self:start_anim(self.idle_anim)
+			return
 		end
 		if self.cur_anim == self.run_anim then
-			-- running animation rate changes based on your speed
-			if (speed_x >= self.max_dx) then
-				self.run_anim.tx = 1
-			elseif (speed_x < self.max_dx / 3) then
-				self.run_anim.tx = 3
-			else
-				self.run_anim.tx = 2
-			end
+			self:set_anim_rate(speed_x, self.max_dx)
+			return
 		end
+	end
+end
+
+function actor:set_anim_rate(speed, max_speed)
+	-- running animation rate changes based on your speed
+	local idle = 0.1
+	if (speed >= max_speed) then
+		self.cur_anim.tx = 1
+	elseif (speed < max_speed / 3 and speed > idle) then
+		self.cur_anim.tx = 3
+	elseif (speed < idle) then
+		self.cur_anim.tx = 100
+	else
+		self.cur_anim.tx = 2
 	end
 end
 
@@ -250,6 +293,10 @@ function actor:advance_frame()
 	self.anim_tx -= 1
 	if self.anim_tx > 0 then
 		-- frame is longer than one tick
+		if self.anim_tx > self.cur_anim.tx then
+			-- we switched to a faster animation
+			self.anim_tx = self.cur_anim.tx
+		end
 		return
 	end
 	self.anim_tx = self.cur_anim.tx
