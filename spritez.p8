@@ -6,6 +6,7 @@ printh("\n\n-------\n-poop-\n-------")
 
 grav = 0.3
 
+-- animations
 run_anim = {
 	frames = {0,2,4,6,8,10,12,14,32,34,36,38,40},
 	tx = 2,
@@ -30,8 +31,11 @@ clmb_anim = {
 	loop = true
 }
 
+actors = {}
+
 -- actor 'class'
 actor = {
+	player = 0,
 	x = 8,
 	y = 8,
 	dx = 0,
@@ -63,6 +67,11 @@ actor = {
 	anim_index = 1,
 	anim_tx = idle_anim.tx
 }
+function actor.new(settings)
+	local dude = setmetatable((settings or {}), { __index = actor }) 
+	return dude
+end
+
 function actor:draw()
 	local h_px = (self.size * 8) / 2
 	spr(self.frame,
@@ -85,12 +94,12 @@ function actor:update()
 
 	self:pick_animation()
 
-	actor:screen_wrap()
+	self:screen_wrap()
 end
 
 function actor:check_run_buttons()
-	local bl=btn(0) --left
-	local br=btn(1) --right
+	local bl=btn(0, self.player) --left
+	local br=btn(1, self.player) --right
 
 	if bl and br then return end
 	if bl then
@@ -108,8 +117,8 @@ function actor:check_clmb_buttons()
 		return 
 	end
 
-	local bu=btn(2) -- up
-	local bd=btn(3) -- down
+	local bu=btn(2, self.player) -- up
+	local bd=btn(3, self.player) -- down
 
 	if bu or bd then
 		self.climbing = true
@@ -128,7 +137,7 @@ function actor:check_clmb_buttons()
 end
 
 function actor:check_jmp_button()
-	self.jmp_pressed = btn(5)
+	self.jmp_pressed = btn(5, self.player)
 	if not self.jmp_pressed then
 		self.jmp_ended = true
 		if self.grounded then -- kind of a hakk to keep you from re-jumping
@@ -310,17 +319,23 @@ function actor:advance_frame()
 end
 
 function _init()
+	local p1 = actor.new()
+	add(actors, p1)
 end
 
 function _update()
-	actor:update()
+	for a in all(actors) do
+		a:update()
+	end
 end
 
 function _draw()
 	cls()
 	map(0,0,0,0,128,128)
-	actor:draw()
-	actor:advance_frame()
+	for a in all(actors) do
+		a:draw()
+		a:advance_frame()
+	end
 end
 
 
