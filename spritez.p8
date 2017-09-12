@@ -68,7 +68,8 @@ actor = {
 	tmr = 1,
 	flp = false,
 	anim_index = 1,
-	anim_tx = idle_anim.tx
+	anim_tx = idle_anim.tx,
+  collision_offset = 4,
 }
 function actor.new(settings)
 	local dude = setmetatable((settings or {}), { __index = actor }) 
@@ -242,14 +243,6 @@ function actor:collide_player()
   end
 end
 
-function collide_actors(actor1, actor2)
-  -- dont collide with yourself
-  -- dont bother checking for collision with something far away
-  if (actor1 == actor2) or (distance(actor1, actor2) > actor1.size * 8) then
-    return
-  end
-end
-
 function actor:pick_animation()
 	--climbing
 	if self.climbing then
@@ -396,6 +389,43 @@ end
 function sqr(x)
   return x * x
 end
+
+function collide_actors(actor1, actor2)
+  -- dont collide with yourself
+  -- dont bother checking for collision with something far away
+  if (actor1 == actor2) or (distance(actor1, actor2) > actor1.size * 8) then
+    return
+  end
+  local actor_size = actor1.size * 8
+  -- the hitbox should be a little smaller on the x axis, because our sprite is twiggy
+  local offset = actor.collision_offset
+  local collide = intersects_box_box(
+    actor1.x + offset, actor1.y,
+    actor_size - (offset * 2), actor_size,
+    actor2.x + offset, actor2.y,
+    actor_size - (offset * 2), actor_size
+  )
+  printh('collided: '..(collide and 't' or 'f'))
+end
+
+--box to box intersection
+function intersects_box_box(
+	x1,y1,
+	w1,h1,
+	x2,y2,
+	w2,h2)
+ 
+	local xd=x1-x2
+	local xs=w1*0.5+w2*0.5
+	if abs(xd)>=xs then return false end
+
+	local yd=y1-y2
+	local ys=h1*0.5+h2*0.5
+	if abs(yd)>=ys then return false end
+	
+	return true
+end
+
 
 __gfx__
 00000000077000000000000007700000000000000770000000000000000000000000000000000000000000000770000000000000077000000000000007700000
