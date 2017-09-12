@@ -1,7 +1,7 @@
 pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
-		
+
 printh("\n\n-------\n-poop-\n-------")
 
 grav = 0.3
@@ -36,6 +36,7 @@ actors = {}
 -- actor 'class'
 actor = {
 	player = 0,
+	clr = 7,
 	x = 8,
 	y = 8,
 	dx = 0,
@@ -57,11 +58,13 @@ actor = {
 	idle_anim = idle_anim,
 	clmb_anim = clmb_anim,
 	cur_anim = idle_anim,
+	cur_anim_tx = idle_anim.tx,
 	frame = idle_anim.frames[1],
 	airtime = 0,
 	grounded = false,
 	on_ladder = false,
 	climbing = false,
+  falling = false,
 	tmr = 1,
 	flp = false,
 	anim_index = 1,
@@ -73,14 +76,15 @@ function actor.new(settings)
 end
 
 function actor:draw()
+	pal(7, self.clr)
 	local h_px = (self.size * 8) / 2
 	spr(self.frame,
 		self.x - h_px,
 		self.y - h_px,
 		self.size,self.size,
 		self.flp,
-		false
-	)
+		false)
+	pal()
 end
 
 function actor:update()
@@ -181,6 +185,7 @@ end
 function actor:collide()
 	self:collide_ladder()
 	self:collide_floor()
+	self:collide_player()
 end
 
 function actor:collide_ladder()
@@ -231,6 +236,20 @@ function actor:collide_floor()
 	return false
 end
 
+function actor:collide_player()
+  for other in all(actors) do
+    collide_actors(self, other) 
+  end
+end
+
+function collide_actors(actor1, actor2)
+  -- dont collide with yourself
+  -- dont bother checking for collision with something far away
+  if (actor1 == actor2) or (distance(actor1, actor2) > actor1.size * 8) then
+    return
+  end
+end
+
 function actor:pick_animation()
 	--climbing
 	if self.climbing then
@@ -271,18 +290,19 @@ function actor:set_anim_rate(speed, max_speed)
 	-- running animation rate changes based on your speed
 	local idle = 0.1
 	if (speed >= max_speed) then
-		self.cur_anim.tx = 1
+		self.cur_anim_tx = 1
 	elseif (speed < max_speed / 3 and speed > idle) then
-		self.cur_anim.tx = 3
+		self.cur_anim_tx = 3
 	elseif (speed < idle) then
-		self.cur_anim.tx = 100
+		self.cur_anim_tx = 100
 	else
-		self.cur_anim.tx = 2
+		self.cur_anim_tx = 2
 	end
 end
 
 function actor:start_anim(anim)
 	self.cur_anim = anim
+	self.cur_anim_tx = anim.tx
 	self.anim_tx = 0
 	self.anim_index = 1
 end
@@ -302,13 +322,13 @@ function actor:advance_frame()
 	self.anim_tx -= 1
 	if self.anim_tx > 0 then
 		-- frame is longer than one tick
-		if self.anim_tx > self.cur_anim.tx then
+		if self.anim_tx > self.cur_anim_tx then
 			-- we switched to a faster animation
-			self.anim_tx = self.cur_anim.tx
+			self.anim_tx = self.cur_anim_tx
 		end
 		return
 	end
-	self.anim_tx = self.cur_anim.tx
+	self.anim_tx = self.cur_anim_tx
 
 	local max_frame = #self.cur_anim.frames
 	self.anim_index += 1
@@ -320,7 +340,13 @@ end
 
 function _init()
 	local p1 = actor.new()
+	local p2 = actor.new({
+		player = 1,
+		clr = 8,
+		x = 16
+	})
 	add(actors, p1)
+	add(actors, p2)
 end
 
 function _update()
@@ -361,6 +387,14 @@ function printc(str, x, y, col, col_bg, special_chars)
 	local startx=x-(len/2)
 	local starty=y-2
 	printo(str,startx,starty,col,col_bg)
+end
+
+function distance(p1, p2)
+  return sqrt(sqr(p1.x - p2.x) + sqr(p1.y - p2.y))
+end
+
+function sqr(x)
+  return x * x
 end
 
 __gfx__
