@@ -9,5 +9,6 @@ Animation Quandry
 
 
 #TODO 
-- Fix multiplayer animation speed problem
 - player collision
+- falling animation
+- maybe clean up animations if we need room
