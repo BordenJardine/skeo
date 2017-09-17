@@ -12,3 +12,9 @@ Animation Quandry
 - maybe clean up animations if we need room
 - falling forward animation
 - force with direction
+
+f x
+5 7 3
+7 5 3
+5 -3 8
+-3 5 8
