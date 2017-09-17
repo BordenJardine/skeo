@@ -9,6 +9,6 @@ Animation Quandry
 
 
 #TODO 
-- player collision
-- falling animation
 - maybe clean up animations if we need room
+- falling forward animation
+- force with direction

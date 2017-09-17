@@ -66,7 +66,7 @@ actor = {
 	jmp_speed = -2.5,
 	jmp_ended = false,
 	jmp_ticks = 0,
-  max_jmp_time = 8,--max time jump can be held
+	max_jmp_time = 8,--max time jump can be held
 	size = 2,
 	run_anim = run_anim,
 	jmp_anim = jmp_anim,
@@ -82,12 +82,15 @@ actor = {
 	grounded = false,
 	on_ladder = false,
 	climbing = false,
-  falling = false,
-	tmr = 1,
+	falling = false,
+	fall_threshold = 3.5,
+	mass = 1, -- for caclulating force
+	nap_cur = 0, -- time spent downed after collision
+	nap_max = 120,
 	facing = right,
 	anim_index = 1,
 	anim_tx = idle_anim.tx,
-  collision_offset = 4,
+	collision_offset = 4,
 }
 function actor.new(settings)
 	local dude = setmetatable((settings or {}), { __index = actor }) 
@@ -107,10 +110,13 @@ function actor:draw()
 end
 
 function actor:update()
-	-- slow down
-	self:check_run_buttons()
-	self:check_clmb_buttons()
-	self:check_jmp_button()
+	if not self.falling then
+		self:check_run_buttons()
+		self:check_clmb_buttons()
+		self:check_jmp_button()
+	else
+		self:update_nap()
+	end
 
 	self:move()
 	self:collide()
@@ -210,7 +216,7 @@ end
 -- speed x + speed y
 -- force negative if moving left
 function actor:force()
-  return abs(self.dx) + abs(self.dy)
+	return (abs(self.dx) + abs(self.dy)) * self.mass
 end
 
 function actor:collide_ladder()
@@ -262,13 +268,43 @@ function actor:collide_floor()
 end
 
 function actor:collide_player()
-  for other in all(actors) do
-    collide_actors(self, other) 
-  end
+	for other in all(actors) do
+		collide_actors(self, other) 
+	end
+end
+
+function actor:apply_force(f)
+	if(f < self.fall_threshold) then return end
+	self.falling = true
+	self.nap_cur = self.nap_max
+end
+
+-- actor is downed. wait to get up
+function actor:update_nap()
+	if(not self.grounded) then
+		return
+	end
+	self.nap_cur -= 1
+	if self.nap_cur <= 0 then
+		self.nap_cur = 0
+		self.falling = false
+	end
 end
 
 function actor:pick_animation()
-	--climbing
+  -- falling
+	if self.falling then
+		if self.cur_anim != self.fall_anim and self.cur_anim != self.end_fall_anim then
+			self:start_anim(self.fall_anim)
+		else
+			if self.grounded and self.anim_loops > 0 then
+				self:start_anim(self.end_fall_anim)
+			end
+		end
+		return
+	end
+
+	-- climbing
 	if self.climbing then
 		if self.cur_anim != self.clmb_anim then
 			self:start_anim(self.clmb_anim)
@@ -351,12 +387,12 @@ function actor:advance_frame()
 	local max_frame = #self.cur_anim.frames
 	self.anim_index += 1
 	if self.anim_index > max_frame then
-    if (self.cur_anim.loop) then
-      self.anim_index = 1
-      self.anim_loops += 1
-    else 
-      self.anim_index = max_frame
-    end
+		if (self.cur_anim.loop) then
+			self.anim_index = 1
+			self.anim_loops += 1
+		else 
+			self.anim_index = max_frame
+		end
 	end
 	self.frame = self.cur_anim.frames[self.anim_index]
 end
@@ -413,41 +449,47 @@ function printc(str, x, y, col, col_bg, special_chars)
 end
 
 function distance(p1, p2)
-  return sqrt(sqr(p1.x - p2.x) + sqr(p1.y - p2.y))
+	return sqrt(sqr(p1.x - p2.x) + sqr(p1.y - p2.y))
 end
 
 function sqr(x)
-  return x * x
+	return x * x
 end
 
 function collide_actors(act1, act2)
-  -- dont collide with yourself
-  -- dont bother checking for collision with something far away
-  if (act1 == act2) or (distance(act1, act2) > act1.size * 8) then
-    return
-  end
-  local act_size = act1.size * 8
-  -- the hitbox should be a little smaller on the x axis, because our sprite is twiggy
-  local offset = actor.collision_offset
-  local collide = intersects_box_box(
-    act1.x + offset, act1.y,
-    act_size - (offset * 2), act_size,
-    act2.x + offset, act2.y,
-    act_size - (offset * 2), act_size
-  )
-  if (not collide) then return false end
-  
-  -- determine force
-  local big_force = max(act1:force(), act2:force())
-  local sml_force = min(act1:force(), act2:force())
-  local force = 0
-  if (act1.facing == act2.facing) then
-    force = big_force - sml_force
-  else 
-    force = big_force + sml_force
-  end
-  printh('collided! force: '..force)
-  return true
+	-- dont collide with yourself
+	-- dont bother checking for collision with something far away
+  -- dont bother if either of them are already grounded
+	if (act1 == act2) or
+		 (distance(act1, act2) > act1.size * 8) or
+		 act1.falling or
+		 act2.falling then
+		return
+	end
+	local act_size = act1.size * 8
+	-- the hitbox should be a little smaller on the x axis, because our sprite is twiggy
+	local offset = actor.collision_offset
+	local collide = intersects_box_box(
+		act1.x + offset, act1.y,
+		act_size - (offset * 2), act_size,
+		act2.x + offset, act2.y,
+		act_size - (offset * 2), act_size
+	)
+	if (not collide) then return false end
+	
+	-- determine force
+	local big_force = max(act1:force(), act2:force())
+	local sml_force = min(act1:force(), act2:force())
+	local force = 0
+	if (act1.facing == act2.facing) then
+		force = big_force - sml_force
+	else 
+		force = big_force + sml_force
+	end
+	printh('collided! force: '..force)
+	act1:apply_force(force)
+	act2:apply_force(force)
+	return true
 end
 
 --box to box intersection
