@@ -1,17 +1,18 @@
-Animation Quandry
-=================
-
-## 16x16
-4 x 16 = 64 frames of animation
-
-## 8x8
-4 x 64 = 64 frames of animation
-
-
 #TODO 
 - maybe clean up animations if we need room
 - falling forward animation
-- force with direction
+
+#ARCS
+- [x] Movement
+- [ ] Combat
+- [ ] Level Generation
+- [ ] Vertical Scrolling
+- [ ] Win State
+- [ ] Power Ups
+- [ ] Music
+- [ ] Player Selection Screen
+- [ ] Opening
+
 
 f x
 5 7 3
