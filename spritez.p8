@@ -1,7 +1,7 @@
 pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
-	
+
 printh("\n\n-------\n-poop-\n-------")
 
 -- constants
@@ -295,8 +295,12 @@ end
 function actor:apply_force(force)
 	local f = abs(force - self:force())
 	if (f < self.fall_threshold) then return end
-	self.dx += force 
+	-- innertia (work this out later)
+	-- local m = (force < 0) and self.mass or -self.mass
+	local m = 0
+	self.dx += force + m
 	self.falling = true
+	self.climbing = false
 	self.nap_cur = self.nap_max
 end
 
@@ -313,14 +317,14 @@ function actor:update_nap()
 end
 
 function actor:pick_animation()
-  -- falling
+	-- falling
 	if self.falling then
-    if not includes(fall_anims, self.cur_anim) then
-      local anim = self:falling_fwd() and self.fall_fwd_anim or self.fall_bk_anim
+		if not includes(fall_anims, self.cur_anim) then
+			local anim = self:falling_fwd() and self.fall_fwd_anim or self.fall_bk_anim
 			self:start_anim(anim)
 		else
 			if self.grounded and self.anim_loops > 0 then
-        local anim = self:falling_fwd() and self.end_fall_fwd_anim or self.end_fall_bk_anim
+				local anim = self:falling_fwd() and self.end_fall_fwd_anim or self.end_fall_bk_anim
 				self:start_anim(anim)
 			end
 		end
@@ -363,7 +367,7 @@ function actor:pick_animation()
 end
 
 function actor:falling_fwd()
-  return ((self.dx < 0) == self.facing) and true or false
+	return ((self.dx < 0) == self.facing) and true or false
 end
 
 function actor:set_anim_rate(speed, max_speed)
@@ -394,7 +398,7 @@ function actor:screen_wrap()
 	local r_bound = 128 + h_w
 	if self.x > r_bound then
 		self.x = l_bound
-	elseif  self.x < l_bound then
+	elseif self.x < l_bound then
 		self.x = r_bound
 	end
 end
@@ -486,7 +490,7 @@ end
 function collide_actors(act1, act2)
 	-- dont collide with yourself
 	-- dont bother checking for collision with something far away
-  -- dont bother if either of them are already grounded
+	-- dont bother if either of them are already grounded
 	if (act1 == act2) or
 		 (distance(act1, act2) > act1.size * 8) or
 		 act1.falling or
@@ -503,7 +507,7 @@ function collide_actors(act1, act2)
 		act_size - (offset * 2), act_size
 	)
 	if (not collide) then return false end
-	
+
 	act1:apply_force(act2:force())
 	act2:apply_force(act1:force())
 	return true
@@ -523,15 +527,15 @@ function intersects_box_box(
 	local yd=y1-y2
 	local ys=h1*0.5+h2*0.5
 	if abs(yd)>=ys then return false end
-	
+
 	return true
 end
 
 function includes(tab, val)
-  for v in all(tab) do
-    if v == val then return true end
-  end
-  return false
+	for v in all(tab) do
+		if v == val then return true end
+	end
+	return false
 end
 
 
