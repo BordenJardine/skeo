@@ -59,7 +59,7 @@ end_fall_fwd_anim = {
 }
 
 local fall_anims = {fall_fwd_anim, fall_bk_anim, end_fall_fwd_anim, end_fall_bk_anim}
-
+local air_fall_anims = {fall_fwd_anim, fall_bk_anim}
 
 actors = {}
 
@@ -323,8 +323,13 @@ function actor:pick_animation()
 			local anim = self:falling_fwd() and self.fall_fwd_anim or self.fall_bk_anim
 			self:start_anim(anim)
 		else
-			if self.grounded and self.anim_loops > 0 then
-				local anim = self:falling_fwd() and self.end_fall_fwd_anim or self.end_fall_bk_anim
+			if self.grounded then
+				if self.anim_loops > 0 then
+					local anim = self:falling_fwd() and self.end_fall_fwd_anim or self.end_fall_bk_anim
+					self:start_anim(anim)
+				end
+			elseif not includes(air_fall_anims, self.cur_anim) then
+				local anim = self:falling_fwd() and self.fall_fwd_anim or self.fall_bk_anim
 				self:start_anim(anim)
 			end
 		end
