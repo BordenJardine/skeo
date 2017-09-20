@@ -294,10 +294,10 @@ end
 
 function actor:apply_force(force)
 	local f = abs(force - self:force())
+	-- printh('p: '..self.player..' f: '..self:force()..' of: '..force..' abs f: '..f)
 	if (f < self.fall_threshold) then return end
-	-- innertia (work this out later)
-	-- local m = (force < 0) and self.mass or -self.mass
-	local m = 0
+	-- innertia
+	local m = (force < 0) and -self.mass or self.mass
 	self.dx += force + m
 	self.falling = true
 	self.climbing = false
@@ -490,7 +490,7 @@ end
 function collide_actors(act1, act2)
 	-- dont collide with yourself
 	-- dont bother checking for collision with something far away
-	-- dont bother if either of them are already grounded
+	-- dont bother if either of them are already downed
 	if (act1 == act2) or
 		 (distance(act1, act2) > act1.size * 8) or
 		 act1.falling or
@@ -508,8 +508,11 @@ function collide_actors(act1, act2)
 	)
 	if (not collide) then return false end
 
-	act1:apply_force(act2:force())
-	act2:apply_force(act1:force())
+	-- do these upfront, because apply_force mutates actors current force
+	f1 = act1:force()
+	f2 = act2:force()
+	act1:apply_force(f2)
+	act2:apply_force(f1)
 	return true
 end
 
