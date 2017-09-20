@@ -110,7 +110,7 @@ actor = {
 	fall_threshold = 3.5,
 	mass = 1, -- for caclulating force
 	nap_cur = 0, -- time spent downed after collision
-	nap_max = 90,
+	nap_max = 60,
 	facing = right,
 	anim_index = 1,
 	anim_tx = idle_anim.tx,
@@ -334,7 +334,7 @@ function actor:pick_animation()
 				if self.anim_loops > 0 then
 					local anim = self:falling_fwd() and self.end_fall_fwd_anim or self.end_fall_bk_anim
 					self:start_anim(anim)
-				elseif self.cur_anim != self.stand_anim and (self.nap_cur < self.nap_max / 3) then
+				elseif self.cur_anim != self.stand_anim and (self.nap_cur < self.nap_max / 6) then
 					self:start_anim(self.stand_anim)
 				end
 			elseif not includes(air_fall_anims, self.cur_anim) then
