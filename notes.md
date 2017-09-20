@@ -1,7 +1,10 @@
-#TODO 
+#BUGS ETC
+- holding down punch button
 - maybe clean up animations if we need room
 - better 'stand up' animation
-- punch animation
+
+#SHORT TERM TODO 
+- x punch animation
 - punch code
 - punch animation2
 
