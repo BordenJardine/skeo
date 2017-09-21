@@ -75,7 +75,7 @@ hook_anim = {
 	frames = {194, 200, 202, 204, 200},
 	tx = 2,
 	loop = false,
-	strike_frame = 198
+	strike_frame = 202
 }
 punch_anims = {jab_anim, hook_anim}
 
