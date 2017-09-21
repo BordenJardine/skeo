@@ -125,13 +125,15 @@ actor = {
 	grounded = false,
 	on_ladder = false,
 	climbing = false,
-	falling = false,
+	downed = false,
 	fall_threshold = 3.5,
 	mass = 1, -- for caclulating force
 	nap_cur = 0, -- time spent downed after collision
 	nap_max = 60,
 	facing = right,
 	collision_offset = 4,
+	punch_y_offset = 4,
+	punch_force = 1,
 }
 function actor.new(settings)
 	local dude = setmetatable((settings or {}), { __index = actor }) 
@@ -151,7 +153,7 @@ function actor:draw()
 end
 
 function actor:update()
-	if not self.falling then
+	if not self.downed then
 		if not self:check_punch_button() then
 			self:check_run_buttons()
 			self:check_clmb_buttons()
@@ -172,12 +174,6 @@ end
 
 function actor:check_punch_button()
 	if self.climbing or not self.grounded then return false end
-	-- DEBUG
-		if not self.punching and btn(4, self.player) then
-			printh('p: '..self.player..' punch!')
-		end
-	-- /DEBUG
-	
 	self.punching = self.punching or btn(4, self.player) 
 	return self.punching
 end
@@ -330,14 +326,15 @@ function actor:collide_player()
 	end
 end
 
-function actor:apply_force(force)
-	local f = abs(force - self:force())
+function actor:apply_force(force, bonus)
+	bonus = bonus or 0
+	local f = abs(force - self:force()) + bonus
 	-- printh('p: '..self.player..' f: '..self:force()..' of: '..force..' abs f: '..f)
 	if (f < self.fall_threshold) then return end
 	-- innertia
 	local m = (force < 0) and -self.mass or self.mass
 	self.dx += force + m
-	self.falling = true
+	self.downed = true
 	self.climbing = false
 	self.nap_cur = self.nap_max
 end
@@ -345,13 +342,37 @@ end
 function actor:update_punch()
 	if not self.punching then return end
 	if self.cur_anim.strike_frame != nil and self.frame == self.cur_anim.strike_frame then
-		actor:punch_players()
+		self:punch_players()
 	end
 	self.punching = self.anim_index < #self.cur_anim.frames
 end
 
 function actor:punch_players()
-	printh('wham!')
+	for other in all(actors) do
+		self:punch(other) 
+	end
+end
+
+function actor:punch(other)
+	-- dont punch yourself, and dont punch anyone too far away
+	if other == self or
+		 distance(self, other) > self.size * 8 or
+		 other.downed then
+		return false
+	end
+	local offset = actor.collision_offset
+	local act_size = other.size * 8
+	local px = self.x + (self.facing == left and 0 or act_size)
+	local py = self.y + self.punch_y_offset
+	local ox = other.x + offset
+	local oy = other.y
+	local ow = act_size - (offset * 2)
+	local oh = act_size
+	if intersects_point_box(px,py,ox,oy,ow,oh) then
+		local force = self.punch_force * (self.facing == left and -1 or 1)
+		printh('foo: '..force)
+		other:apply_force(force, 4)
+	end
 end
 
 -- actor is downed. wait to get up
@@ -362,13 +383,13 @@ function actor:update_nap()
 	self.nap_cur -= 1
 	if self.nap_cur <= 0 then
 		self.nap_cur = 0
-		self.falling = false
+		self.downed = false
 	end
 end
 
 function actor:pick_animation()
 	-- falling
-	if self.falling then
+	if self.downed then
 		if not includes(fall_anims, self.cur_anim) then
 			local anim = self:falling_fwd() and self.fall_fwd_anim or self.fall_bk_anim
 			self:start_anim(anim)
@@ -558,18 +579,20 @@ function collide_actors(act1, act2)
 	-- dont bother if either of them are already downed
 	if (act1 == act2) or
 		 (distance(act1, act2) > act1.size * 8) or
-		 act1.falling or
-		 act2.falling then
+		 act1.downed or
+		 act2.downed then
 		return
 	end
+	-- printh('d: '..distance(act1,act2)..' x1,x2: '..act1.x..','..act2.x..' y1,y2: '..act1.y..','..act2.y)
 	local act_size = act1.size * 8
 	-- the hitbox should be a little smaller on the x axis, because our sprite is twiggy
-	local offset = actor.collision_offset
+	local offset = act1.collision_offset
+	local slim_size = act_size - (offset * 2)
 	local collide = intersects_box_box(
 		act1.x + offset, act1.y,
-		act_size - (offset * 2), act_size,
+		slim_size, act_size,
 		act2.x + offset, act2.y,
-		act_size - (offset * 2), act_size
+		slim_size, act_size
 	)
 	if (not collide) then return false end
 
@@ -579,6 +602,24 @@ function collide_actors(act1, act2)
 	act1:apply_force(f2)
 	act2:apply_force(f1)
 	return true
+end
+
+function intersects_point_box(px,py,x,y,w,h)
+	if flr(px)>=flr(x) and flr(px)<flr(x+w) and
+				flr(py)>=flr(y) and flr(py)<flr(y+h) then
+		return true
+	else
+		return false
+	end
+end
+
+function intersects_point_box(px,py,x,y,w,h)
+	if flr(px)>=flr(x) and flr(px)<flr(x+w) and
+				flr(py)>=flr(y) and flr(py)<flr(y+h) then
+		return true
+	else
+		return false
+	end
 end
 
 --box to box intersection
@@ -607,7 +648,7 @@ function includes(tab, val)
 end
 
 function select(t)
-  return t[flr(rnd(#t))+1]
+	return t[flr(rnd(#t))+1]
 end
 
 
