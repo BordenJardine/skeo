@@ -72,7 +72,7 @@ jab_anim = {
 }
 
 hook_anim = {
-	frames = {194, 200, 202, 204, 200},
+	frames = {194, 200, 202, 204, 196},
 	tx = 2,
 	loop = false,
 	strike_frame = 202
