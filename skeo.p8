@@ -8,6 +8,7 @@ printh("\n\n-------\n-poop-\n-------")
 grav = 0.3
 left = true -- these are for facing
 right = false
+
 start_x = 30 * 8 -- where to draw initial cam
 start_y = 16 * 8
 p1_strt_x = start_x + 8
@@ -15,12 +16,19 @@ p1_strt_y = start_y + 10 * 8
 p2_strt_x = start_x + 8 * 13
 p2_strt_y = p1_start_y
 
+starting_scroll_speed = 10
+scroll_cooldown = 450 -- 15 seconds
+
 -- sounds
 snd_jmp = 0
 snd_bmp = 1
 snd_wif = 2
 snd_hit = 3
 snd_lnd = 4
+
+-- game state
+game_over = false
+actors = {}
 
 -- animations
 run_anim = {
@@ -94,8 +102,6 @@ punch_anims = {jab_anim, hook_anim}
 
 fall_anims = {fall_fwd_anim, fall_bk_anim, end_fall_fwd_anim, end_fall_bk_anim, stand_anim}
 air_fall_anims = {fall_fwd_anim, fall_bk_anim}
-
-actors = {}
 
 -- actor 'class'
 actor = {
@@ -183,6 +189,7 @@ function actor:update()
 	self:update_punch()
 
 	self:screen_wrap()
+	self:kill_maybe()
 end
 
 function actor:check_punch_button()
@@ -405,6 +412,14 @@ function actor:update_nap()
 	end
 end
 
+function actor:kill_maybe()
+	-- if off screen, remove from game
+	if self.y > cam.y + 136 then
+		del(actors, self)
+		sfx(snd_bmp)
+	end
+end
+
 function actor:pick_animation()
 	-- falling
 	if self.downed then
@@ -532,15 +547,37 @@ function actor:advance_frame()
 	self.frame = self.cur_anim.frames[self.anim_index]
 end
 
-cam = {
-	x = start_x,
-	y = start_y,
-	scrolling = true,
-	max_scroll_tx = 20,
-	scroll_tx = 20,
-}
+-- camera singleton
+cam = {}
+function cam:init()
+	self.x = start_x
+	self.y = start_y
+	self.scrolling = true
+	self.max_scroll_tx = starting_scroll_speed
+	self.scroll_tx = starting_scroll_speed
+	self.cooldown = scroll_cooldown -- change scrolling speed every so often
+end
+
 function cam:update()
+	self:update_scroll()
+end
+
+function cam:update_scroll()
+	-- check scroll speed
+	self.cooldown -= 1
+	if self.cooldown < 1 then
+		self.cooldown = scroll_cooldown
+		if not self.scrolling then
+			self.scrolling = true
+		else
+			self.max_scroll_tx = self.max_scroll_tx / 2
+			self.scroll_tx = self.max_scroll_tx
+		end
+	end
+
 	if(not self.scrolling) return
+	
+	-- scroll up
 	self.scroll_tx = self.scroll_tx - 1
 	if self.scroll_tx < 1 then
 		self.scroll_tx = self.max_scroll_tx
@@ -548,7 +585,12 @@ function cam:update()
 	end
 end
 
-function _init()
+function init()
+	--init cam
+	cam:init()
+
+	--init actors
+	actors = {}
 	local p1 = actor.new()
 	local p2 = actor.new({
 		player = 1,
@@ -557,13 +599,40 @@ function _init()
 	})
 	add(actors, p1)
 	add(actors, p2)
+
+	game_over = false
 end
 
-function _update()
+function check_game_state()
+	if(#actors < 2) game_over = true
+end
+
+function update_actors()
 	for a in all(actors) do
 		a:update()
 	end
-	cam:update()
+end
+
+function draw_game_over()
+  local clr = 13
+  local winner = actors[1]
+  if(winner) clr = winner.clr
+  printc(winner and 'super' or 'no survivors',cam.x +64, cam.y + 56,0,clr,0)
+  printc(' press \151 to restart',cam.x + 56, cam.y + 64,0,clr,1)
+end
+
+function _init()
+	init()
+end
+
+function _update()
+	check_game_state()
+	if game_over then
+		if(btn(4)) init()
+	else
+		update_actors()
+		cam:update()
+	end
 end
 
 function _draw()
@@ -574,6 +643,7 @@ function _draw()
 		a:draw()
 		a:advance_frame()
 	end
+	if(game_over) draw_game_over()
 end
 
 
