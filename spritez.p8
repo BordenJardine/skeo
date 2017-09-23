@@ -186,7 +186,7 @@ function actor:update()
 end
 
 function actor:check_punch_button()
-	if self.climbing or not self.grounded then return false end
+	if(self.climbing or not self.grounded) return false
 	self.punching = self.punching or btn(4, self.player) 
 	return self.punching
 end
@@ -195,7 +195,7 @@ function actor:check_run_buttons()
 	local bl=btn(0, self.player) --left
 	local br=btn(1, self.player) --right
 
-	if bl and br then return end
+	if(bl and br) return
 	if bl then
 		self.facing = left
 		self.dx -= self.acc
@@ -220,7 +220,7 @@ function actor:check_clmb_buttons()
 		-- not pressing any buttons, but we are in climb mode: hold still
 		self.dy = 0
 	end
-	if bu and bd then return end
+	if(bu and bd) return
 	if bu then
 		self.facing = left -- todo: do we need these facings?
 		self.dy -= self.acc
@@ -241,15 +241,11 @@ function actor:check_jmp_button()
 		return
 	end
 
-	if self.jmp_ended then return end
+	if(self.jmp_ended) return
 
-	if self.jmp_ticks == 0 then
-		sfx(sfx_jmp)
-	end
+	if(self.jmp_ticks == 0) sfx(sfx_jmp)
 	self.jmp_ticks += 1
-	if self.jmp_ticks < self.max_jmp_time then
-		self.dy=self.jmp_speed -- keep going up while held
-	end
+	if(self.jmp_ticks < self.max_jmp_time) self.dy=self.jmp_speed -- keep going up while held
 end
 
 function actor:move()
@@ -300,9 +296,7 @@ function actor:collide_ladder()
 	-- local qs = sizep / 4 -- quarter size
 	-- tl, tr, bl, br
 	local points = {
-		{x, y - hs},
-		-- {x - qs, y - hs}, can uncomment these if ladderin is too unforgiving
-		-- {x + qs, y - hs},
+		{x, y - hs}
 	}
 
 	for p in all(points) do
@@ -317,9 +311,7 @@ end
 function actor:collide_floor()
 	local old_grounded = self.grounded
 	self.grounded = false
-	if self.dy<0 then
-		return false
-	end
+	if(self.dy<0) return false
 	local landed=false
 	--check for collision at multiple points along the bottom
 	--of the sprite: left, center, and right.
@@ -331,9 +323,7 @@ function actor:collide_floor()
 			self.y=(flr((self.y+(sizep/2))/8)*8)-(sizep/2)
 			self.grounded=true
 			self.airtime=0
-			if not old_grounded then
-				sfx(snd_lnd)
-			end
+			if(not old_grounded) sfx(snd_lnd)
 			return true
 		end
 	end
@@ -360,7 +350,7 @@ function actor:apply_force(force, bonus)
 end
 
 function actor:update_punch()
-	if not self.punching then return end
+	if(not self.punching) return
 	if self.cur_anim.strike_frame != nil and self.frame == self.cur_anim.strike_frame then
 		self:punch_players()
 	end
@@ -550,9 +540,7 @@ cam = {
 	scroll_tx = 20,
 }
 function cam:update()
-	if not self.scrolling then
-		return
-	end
+	if(not self.scrolling) return
 	self.scroll_tx = self.scroll_tx - 1
 	if self.scroll_tx < 1 then
 		self.scroll_tx = self.max_scroll_tx
@@ -642,16 +630,14 @@ function collide_actors(act1, act2)
 		act2.x + offset, act2.y,
 		slim_size, act_size
 	)
-	if (not collide) then return false end
+	if(not collide) return false
 
 	-- do these upfront, because apply_force mutates actors current force
 	local f1 = act1:force()
 	local f2 = act2:force()
 	local r1 = act1:apply_force(f2)
 	local r2 = act2:apply_force(f1)
-	if r1 or r2 then
-		sfx(snd_bmp)
-	end
+	if (r1 or r2) sfx(snd_bmp)
 	return true
 end
 
@@ -693,7 +679,7 @@ end
 
 function includes(tab, val)
 	for v in all(tab) do
-		if v == val then return true end
+		if(v == val) return true
 	end
 	return false
 end
