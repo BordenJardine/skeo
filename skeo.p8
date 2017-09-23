@@ -417,6 +417,7 @@ function actor:kill_maybe()
 	if self.y > cam.y + 136 then
 		del(actors, self)
 		sfx(snd_bmp)
+		cam:shake(15,2)
 	end
 end
 
@@ -556,10 +557,13 @@ function cam:init()
 	self.max_scroll_tx = starting_scroll_speed
 	self.scroll_tx = starting_scroll_speed
 	self.cooldown = scroll_cooldown -- change scrolling speed every so often
+	self.shake_remaining=0
+	self.shake_force = 0
 end
 
 function cam:update()
-	self:update_scroll()
+	if(not game_over) self:update_scroll()
+	self:update_shake()
 end
 
 function cam:update_scroll()
@@ -583,6 +587,21 @@ function cam:update_scroll()
 		self.scroll_tx = self.max_scroll_tx
 		self.y -= 1
 	end
+end
+
+function cam:update_shake()
+	self.shake_remaining=max(0,self.shake_remaining-1)
+	if self.shake_remaining > 1 then
+		self.x += rnd(self.shake_force)-(self.shake_force/2)
+		self.y += rnd(self.shake_force)-(self.shake_force/2)
+	elseif self.shake_remaining == 1 then
+		self.x = start_x
+	end
+end
+
+function cam:shake(ticks,force)
+	self.shake_remaining = ticks
+	self.shake_force=force
 end
 
 function init()
@@ -614,11 +633,11 @@ function update_actors()
 end
 
 function draw_game_over()
-  local clr = 13
-  local winner = actors[1]
-  if(winner) clr = winner.clr
-  printc(winner and 'super' or 'no survivors',cam.x +64, cam.y + 56,0,clr,0)
-  printc(' press \151 to restart',cam.x + 56, cam.y + 64,0,clr,1)
+	local clr = 13
+	local winner = actors[1]
+	if(winner) clr = winner.clr
+	printc(winner and 'super' or 'no survivors',cam.x + 64, cam.y + 56,0,clr,0)
+	printc(' press \151 to restart',cam.x + 56, cam.y + 64,0,clr,0)
 end
 
 function _init()
@@ -631,8 +650,8 @@ function _update()
 		if(btn(4)) init()
 	else
 		update_actors()
-		cam:update()
 	end
+	cam:update()
 end
 
 function _draw()

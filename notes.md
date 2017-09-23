@@ -7,7 +7,8 @@
 - player 1 will always win ties re: punches. Need to add seperate colide phase to fix :(
 
 #SHORT TERM TODO 
-- scroll up 
+- screen shake
+- explosion
 
 #ARCS
 - [x] Movement
