@@ -9,18 +9,17 @@ map should start at 32x15
 - holding down punch button
 - maybe clean up animations if we need room
 - better 'stand up' animation
+- player 1 will always win ties re: punches. Need to add seperate colide phase to fix :(
 
 #SHORT TERM TODO 
-- x punch animation
-- punch code
-- punch animation2
+- scroll up 
 
 #ARCS
 - [x] Movement
-- [o] Combat
-- [ ] Level Generation
-- [ ] Vertical Scrolling
+- [x] Combat
+- [o] Vertical Scrolling
 - [ ] Win State
+- [ ] Level Generation
 - [ ] Power Ups
 - [ ] Music
 - [ ] Player Selection Screen
