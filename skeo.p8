@@ -12,7 +12,7 @@ right = false
 start_x = 30 * 8 -- where to draw initial cam
 start_y = 16 * 8
 p1_strt_x = start_x + 8
-p1_strt_y = start_y + 10 * 8
+p1_strt_y = start_y + (14 * 8)
 p2_strt_x = start_x + 8 * 13
 p2_strt_y = p1_start_y
 
@@ -28,6 +28,8 @@ snd_lnd = 4
 
 -- game state
 game_over = false
+default_got = 30
+game_over_timeout = 30
 actors = {}
 
 -- animations
@@ -553,7 +555,7 @@ cam = {}
 function cam:init()
 	self.x = start_x
 	self.y = start_y
-	self.scrolling = true
+	self.scrolling = false
 	self.max_scroll_tx = starting_scroll_speed
 	self.scroll_tx = starting_scroll_speed
 	self.cooldown = scroll_cooldown -- change scrolling speed every so often
@@ -623,7 +625,14 @@ function init()
 end
 
 function check_game_state()
-	if(#actors < 2) game_over = true
+	if game_over or #actors < 2 then
+		if not game_over then -- game just ended
+			game_over = true
+			game_over_timeout = default_got
+		else
+			game_over_timeout = max(0, game_over_timeout - 1)
+		end
+	end
 end
 
 function update_actors()
@@ -646,7 +655,7 @@ end
 
 function _update()
 	check_game_state()
-	if game_over then
+	if game_over and game_over_timeout == 0 then
 		if(btn(4)) init()
 	else
 		update_actors()

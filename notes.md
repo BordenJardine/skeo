@@ -10,6 +10,7 @@ NOTES
 
 #SHORT TERM TODO 
 - explosion
+- timeout for gameover_screen
 
 #ARCS
 - [x] Movement
