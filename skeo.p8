@@ -47,7 +47,7 @@ idle_anim = {
 
 jmp_anim = {
 	frames = {8,12,14,46},
-	tx = 1,
+	tx = 2,
 	loop = false
 }
 
@@ -424,7 +424,7 @@ function actor:kill_maybe()
 end
 
 function actor:pick_animation()
-	-- falling
+	-- falling TODO: wtf is all of this holy shit
 	if self.downed then
 		if not includes(fall_anims, self.cur_anim) then
 			local anim = self:falling_fwd() and self.fall_fwd_anim or self.fall_bk_anim
@@ -464,8 +464,7 @@ function actor:pick_animation()
 	end
 
 	-- jumping
-	local jumping = self.jmp_ticks == 1 -- sorta hacky...
-	if jumping then
+	if not (self.grounded or self.falling or self.cur_anim == self.jmp_anim) then
 		self:start_anim(self.jmp_anim)
 		return
 	end
