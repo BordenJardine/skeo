@@ -1,22 +1,25 @@
-#NOTES
+NOTES
+=====
 
 #BUGS ETC
 - holding down punch button
 - maybe clean up animations if we need room
 - better 'stand up' animation
+- climb animation sometimes continues after leaving from ladder
 - player 1 will always win ties re: punches. Need to add seperate colide phase to fix :(
 
 #SHORT TERM TODO 
-- screen shake
 - explosion
 
 #ARCS
 - [x] Movement
 - [x] Combat
+- [x] Win State
 - [o] Vertical Scrolling
-- [ ] Win State
 - [ ] Level Generation
-- [ ] Power Ups
+- [ ] Powerups
 - [ ] Music
 - [ ] Player Selection Screen
 - [ ] Opening
+- [ ] Revisit Animations
+- [ ] Tweak It Till It's Fun

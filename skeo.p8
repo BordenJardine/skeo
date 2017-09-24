@@ -601,7 +601,7 @@ end
 
 function cam:shake(ticks,force)
 	self.shake_remaining = ticks
-	self.shake_force=force
+	self.shake_force = force
 end
 
 function init()
