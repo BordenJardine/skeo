@@ -1,6 +1,11 @@
 NOTES
 =====
 
+infinite random levels will be hard
+if it's too hard,
+could do best of 3 with each level only going one map height high
+instead of looping
+
 #BUGS ETC
 - holding down punch button
 - maybe clean up animations if we need room
@@ -9,8 +14,10 @@ NOTES
 - player 1 will always win ties re: punches. Need to add seperate colide phase to fix :(
 
 #SHORT TERM TODO 
-- explosion
-- timeout for gameover_screen
+- new sound for death
+
+#IF THERE IS ROOM
+- effect on death
 
 #ARCS
 - [x] Movement
