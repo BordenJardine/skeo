@@ -10,7 +10,6 @@ instead of looping
 - holding down punch button
 - maybe clean up animations if we need room
 - better 'stand up' animation
-- climb animation sometimes continues after leaving from ladder
 - player 1 will always win ties re: punches. Need to add seperate colide phase to fix :(
 
 #SHORT TERM TODO 
