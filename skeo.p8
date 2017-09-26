@@ -196,7 +196,7 @@ end
 
 function actor:check_punch_button()
 	if(self.climbing or not self.grounded) return false
-	self.punching = self.punching or btn(4, self.player) 
+	self.punching = self.punching or btn(5, self.player) 
 	return self.punching
 end
 
@@ -240,7 +240,7 @@ function actor:check_clmb_buttons()
 end
 
 function actor:check_jmp_button()
-	self.jmp_pressed = btn(5, self.player)
+	self.jmp_pressed = btn(4, self.player)
 	if not self.jmp_pressed then
 		self.jmp_ended = true
 		if self.grounded then -- kind of a hakk to keep you from re-jumping

@@ -11,6 +11,7 @@ instead of looping
 - maybe clean up animations if we need room
 - better 'stand up' animation
 - player 1 will always win ties re: punches. Need to add seperate colide phase to fix :(
+- anyone should be able to press x to restart the game
 
 #SHORT TERM TODO 
 - new sound for death
