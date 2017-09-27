@@ -560,6 +560,7 @@ function cam:init()
 	self.y = start_y
 	self.scrolling = false
 	self.max_scroll_tx = starting_scroll_speed
+	self.min_scroll_tx = 1
 	self.scroll_tx = starting_scroll_speed
 	self.cooldown = scroll_cooldown -- change scrolling speed every so often
 	self.shake_remaining=0
@@ -580,7 +581,7 @@ function cam:update_scroll()
 			self.scrolling = true
 		else
 			self.max_scroll_tx = self.max_scroll_tx / 2
-			self.scroll_tx = self.max_scroll_tx
+			self.scroll_tx = max(self.max_scroll_tx, self.min_scroll_tx)
 		end
 	end
 
