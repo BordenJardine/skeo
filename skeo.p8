@@ -613,7 +613,7 @@ end
 scroller = { }
 
 function scroller:map_get(x, y)
-	local screen_x = screen_num(y) % 2 == 0 and x + screen2_offset or x
+	local screen_x = self:screen_num(y) % 2 == 0 and x + screen2_offset or x
 	local screen_y = y % screen_height
 	return mget(screen_x, screen_y)
 end
