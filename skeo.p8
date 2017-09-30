@@ -558,9 +558,8 @@ cam = {}
 function cam:init()
 	self.x = start_x
 	self.y = start_y
-	self.scrolling = false
+	self.scrolling = true
 	self.max_scroll_tx = starting_scroll_speed
-	self.min_scroll_tx = 1
 	self.scroll_tx = starting_scroll_speed
 	self.cooldown = scroll_cooldown -- change scrolling speed every so often
 	self.shake_remaining=0
@@ -575,13 +574,12 @@ end
 function cam:update_scroll()
 	-- check scroll speed
 	self.cooldown -= 1
-	if self.cooldown < 1 then --DEBUG
+	if self.cooldown < 1 then
 		self.cooldown = scroll_cooldown
 		if not self.scrolling then
 			self.scrolling = true
-		else
-			self.max_scroll_tx = self.max_scroll_tx / 2
-			self.scroll_tx = max(self.max_scroll_tx, self.min_scroll_tx)
+		elseif self.max_scroll_tx > 1 then
+			self.max_scroll_tx = max(self.max_scroll_tx / 2, 1)
 		end
 	end
 
@@ -623,9 +621,24 @@ function scroller:screen_num(cell_y)
 	return flr(cell_y / 32) + 1
 end
 
+cur_scrn = {
+	name = 'a',
+	x = 0,
+	y = 0,
+	draw_width = start_cell_x + 16
+}
+next_scrn = {
+	name = 'b',
+	x = -17 * 8,
+	y = -screen_height * 8,
+	draw_width = start_cell_x + 32
+}
 function scroller:draw_map()
-	map(0, 0, 0, 0, start_cell_x + 16, 32) -- screen1
-	map(0, 0, -17 * 8, -screen_height * 8, start_cell_x + 32, 32) --screen2
+	for scrn in all({cur_scrn, next_scrn}) do
+		if mid(scrn.y-128, cam.y, scrn.y+screen_height*8) == cam.y then
+			map(0, 0, scrn.x, scrn.y, scrn.draw_width, 32) -- screen1
+		end
+	end
 end
 
 
