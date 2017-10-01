@@ -23,11 +23,12 @@ second screen starts at x46 y16
 - [x] Movement
 - [x] Combat
 - [x] Win State
-- [o] Vertical Scrolling
+- [x] Vertical Scrolling
 - [ ] Level Generation
 - [ ] Powerups
 - [ ] Music
 - [ ] Player Selection Screen
 - [ ] Opening
+- [ ] Revisit Levels
 - [ ] Revisit Animations
 - [ ] Tweak It Till It's Fun
