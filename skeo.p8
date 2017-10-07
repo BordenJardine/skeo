@@ -39,7 +39,8 @@ snd_lnd = 4
 game_over = false
 default_got = 30
 game_over_timeout = 30
-actors = {}
+playerz = {} -- players in the game
+actors = {} -- living players
 
 -- animations
 run_anim = {
@@ -732,17 +733,27 @@ function draw_game_over()
 	printc(' press \151 to restart',cam.x + 56, cam.y + 64,0,clr,0)
 end
 
+player_select_countdown = 5 * 30 -- 5 secods
 function update_player_select()
-		if any_btn(4) then
+		if player_select_countdown < 1 then
 			current_mode = game
 			init_game()
+			return
+		end
+		if(#playerz > 1) player_select_countdown -= 1
+		for i in all({0,1,2,3}) do
+			if(btn(4, i) and not includes(playerz, i)) add(playerz, i)
 		end
 end
 
 function draw_player_select()
 	cls()
-	printc('super kill each other',64,56,0,8,0)
-	printc(' press \151 to join',56,64,0,8,0)
+	printc('super kill each other',64,16,0,8,0)
+	printc('press \151 to join',   64,32,0,8,0)
+	if(#playerz == 1) printc('need at least two players',64,48,0,8,0)
+	if(#playerz > 1) then 
+		printc(''..(flr(player_select_countdown/30)),64,48,0,8,0)
+	end
 end
 
 function _init()
