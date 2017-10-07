@@ -156,13 +156,13 @@ actor = {
 	on_ladder = false,
 	climbing = false,
 	downed = false,
-	fall_threshold = 3.5,
+	fall_threshold = 4,
 	mass = 1, -- for caclulating force
 	nap_cur = 0, -- time spent downed after collision
 	nap_max = 60,
 	facing = right,
 	collision_offset = 4,
-	punch_y_offset = 4,
+	punch_y_offset = 4, -- your fist is in front of you
 	punch_force = 1,
 }
 function actor.new(settings)
@@ -398,9 +398,9 @@ function actor:punch(other)
 	local act_size = other.size * 8
 	local px = self.x + (self.facing == left and 0 or act_size)
 	local py = self.y + self.punch_y_offset
-	local ox = other.x + offset
+	local ox = other.x -- + offset (trying to make punching for forgiving and useful)
 	local oy = other.y
-	local ow = act_size - offset
+	local ow = act_size -- - offset
 	local oh = act_size
 	if intersects_point_box(px,py,ox,oy,ow,oh) then
 		local force = self.punch_force * (self.facing == left and -1 or 1)
