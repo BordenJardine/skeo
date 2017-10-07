@@ -612,18 +612,21 @@ end
 
 -- scroll manager singleton
 scroller = {}
-screens = {{}, {}}
-
+screens = {}
 function scroller:init_screens()
-	screens[1].name = 'a'
-	screens[1].x = 0
-	screens[1].y = 0
-	screens[1].draw_width = start_cell_x + 16
-
-	screens[2].name = 'b'
-	screens[2].x = -17 * 8
-	screens[2].y = -screen_height * 8
-	screens[2].draw_width = start_cell_x + 32
+	screens = {
+		{
+			name = 'a',
+			x = 0,
+			y = 0,
+			draw_width = start_cell_x + 16
+		}, {
+			name = 'b',
+			x = -17 * 8,
+			y = -screen_height * 8,
+			draw_width = start_cell_x + 33
+		},
+	}
 end
 
 function scroller:map_get(x, y)
