@@ -661,7 +661,7 @@ end
 intro = 0
 player_select = 1
 game = 2
-current_mode = game
+current_mode = player_select
 
 function init_game()
 	--init cam
@@ -685,7 +685,11 @@ end
 function update_game()
 	check_game_state()
 	if game_over and game_over_timeout == 0 then
-		if(btn(4)) init_game()
+		if #actors > 0 then
+			if(btn(4, actors[1].player)) init_game()
+		else
+			if(any_btn(4)) init_game()
+		end
 	else
 		update_actors()
 	end
@@ -729,31 +733,43 @@ function draw_game_over()
 end
 
 function update_player_select()
+		if any_btn(4) then
+			current_mode = game
+			init_game()
+		end
 end
 
 function draw_player_select()
-	printc('super kill each other',cam.x + 64, cam.y + 56,0,clr,0)
-	printc(' press \151 to join',cam.x + 56, cam.y + 64,0,clr,0)
+	cls()
+	printc('super kill each other',64,56,0,8,0)
+	printc(' press \151 to join',56,64,0,8,0)
 end
 
 function _init()
-	init_game()
+	-- init_game()
 end
 
 function _update()
-  if current_mode == game then
+	if current_mode == player_select then
+    update_player_select()
+  elseif current_mode == game then
     update_game()
   end
 end
 
 function _draw()
-  if current_mode == game then
+	if current_mode == player_select then
+    draw_player_select()
+  elseif current_mode == game then
     draw_game()
   end
 end
 
 
 -- helper shit
+function any_btn(n)
+	return btn(n, 0) or btn(n, 1) or btn(n, 2) or btn(n, 3)
+end
 
 --print string with outline.
 function printo(str, startx, starty, col, col_bg)
