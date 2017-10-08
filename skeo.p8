@@ -806,13 +806,9 @@ function draw_letter(letter, x, y, clr)
   pal()
 end
 
-title_colors = {14}
-for ix=1,25 do
-  add(title_colors, 8)
-end
 function draw_letter_o(letter, x, y)
   for ix=-1,1  do for iy=-1,1 do
-    draw_letter(letter, x+ix+rnd(4)-2, y+iy+rnd(4)-1, select(title_colors))
+    draw_letter(letter, x+ix+rnd(4)-2, y+iy+rnd(4)-1, 8)
   end end
   draw_letter(letter, x, y, 0)
 end
