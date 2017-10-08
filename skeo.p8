@@ -689,7 +689,7 @@ function init_game()
 	--init actors
 	actors = {}
 	for p in all(players) do
-		actr = actor.new(player_info[p+1])
+		actr = actor.new(copy(player_info[p+1]))
 		add(actors, actr)
 	end
 
@@ -898,6 +898,15 @@ end
 
 function select(t)
 	return t[flr(rnd(#t))+1]
+end
+
+function copy (t) -- shallow-copy a table
+	-- if type(t) ~= "table" then return t end
+	-- local meta = getmetatable(t)
+	local target = {}
+	for k, v in pairs(t) do target[k] = v end
+	-- setmetatable(target, meta)
+	return target
 end
 
 
