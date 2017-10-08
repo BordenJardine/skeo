@@ -775,6 +775,7 @@ function draw_player_select()
 	end
 end
 
+-- title screen stuff
 letter_sprites = {
 	s = 224, u = 225, p = 226, e = 227, r = 228,
 	k = 229, i = 230, l = 231,
@@ -786,27 +787,34 @@ t_x = 16 + 4
 t_y = 16 + 4
 function draw_title()
 	local words = split(title, ' ')
-	local y = 0
+	local y = 4
 	for word in all(words) do
 		local x = 16 
 		if(word == 'kill' or word == 'each') x = x + 12 
 		letters = split(word, '')
 		for letter in all(letters) do
-			draw_letter(letter, x, y)
+			draw_letter_o(letter, x, y)
 			x += t_x
 		end
 		y += t_y
 	end
 end
 
-function draw_letter(letter, x, y)
-	zspr(letter_sprites[letter],
-		1,
-		1,
-		x,
-		y,
-		2
-	)
+function draw_letter(letter, x, y, clr)
+	pal(8, clr)
+	zspr(letter_sprites[letter], 1, 1, x, y, 2)
+  pal()
+end
+
+title_colors = {14}
+for ix=1,25 do
+  add(title_colors, 8)
+end
+function draw_letter_o(letter, x, y)
+  for ix=-1,1  do for iy=-1,1 do
+    draw_letter(letter, x+ix+rnd(4)-2, y+iy+rnd(4)-1, select(title_colors))
+  end end
+  draw_letter(letter, x, y, 0)
 end
 
 function _init()
