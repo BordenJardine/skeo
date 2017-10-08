@@ -16,10 +16,7 @@ start_cell_x = 29
 start_cell_y = 16
 start_x = start_cell_x * 8 -- where to draw initial cam
 start_y = start_cell_y * 8
-p1_strt_x = start_x + 8
-p1_strt_y = start_y + (14 * 8)
 p2_strt_x = start_x + 8 * 13
-p2_strt_y = p1_start_y
 
 starting_scroll_speed = 2
 scroll_cooldown = 450 -- 15 seconds
@@ -39,8 +36,28 @@ snd_lnd = 4
 game_over = false
 default_got = 30
 game_over_timeout = 30
-playerz = {} -- players in the game
+players = {} -- players in the game
 actors = {} -- living players
+
+player_info = {
+  {
+		player = 0,
+		clr = 7,
+		x = start_x + 8 * 1
+	}, {
+		player = 1,
+		clr = 8,
+		x = start_x + 8 * 13
+	}, {
+		player = 2,
+		clr = 12,
+		x = start_x + 8 * 4
+	},{
+		player = 3,
+		clr = 11,
+		x = start_x + 8 * 9
+	}
+}
 
 -- animations
 run_anim = {
@@ -119,8 +136,8 @@ air_fall_anims = {fall_fwd_anim, fall_bk_anim}
 actor = {
 	player = 0,
 	clr = 7,
-	x = p1_strt_x,
-	y = p1_strt_y,
+	x = start_x + 8,
+	y = start_y + (14 * 8),
 	dx = 0,
 	dy = 0,
 	max_dx = 4,--max x speed
@@ -671,14 +688,10 @@ function init_game()
 
 	--init actors
 	actors = {}
-	local p1 = actor.new()
-	local p2 = actor.new({
-		player = 1,
-		clr = 8,
-		x = p2_strt_x
-	})
-	add(actors, p1)
-	add(actors, p2)
+	for p in all(players) do
+		actr = actor.new(player_info[p+1])
+		add(actors, actr)
+	end
 
 	game_over = false
 end
@@ -740,9 +753,9 @@ function update_player_select()
 			init_game()
 			return
 		end
-		if(#playerz > 1) player_select_countdown -= 1
+		if(#players > 1) player_select_countdown -= 1
 		for i in all({0,1,2,3}) do
-			if(btn(4, i) and not includes(playerz, i)) add(playerz, i)
+			if(btn(4, i) and not includes(players, i)) add(players, i)
 		end
 end
 
@@ -750,9 +763,14 @@ function draw_player_select()
 	cls()
 	printc('super kill each other',64,16,0,8,0)
 	printc('press \151 to join',   64,32,0,8,0)
-	if(#playerz == 1) printc('need at least two players',64,48,0,8,0)
-	if(#playerz > 1) then 
+	if(#players == 1) printc('need at least two players',64,48,0,8,0)
+	if #players > 1  then 
 		printc(''..(flr(player_select_countdown/30)),64,48,0,8,0)
+	end
+	local i = 0
+	for p in all(players) do
+		printc('\140', 16+32*i,80,0,player_info[p+1].clr,0)
+		i += 1
 	end
 end
 

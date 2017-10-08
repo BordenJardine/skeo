@@ -1,10 +1,8 @@
 NOTES
 =====
 
-infinite scroll!
-1 screen is 32 cells high, or 256 pixels
-first screen starts at x29 y16
-second screen starts at x46 y16
+|  3 2  |  3 2  |  3 2  |  3 2  |
+|   |   |   |   |   |   |   |   |
 
 #BUGS ETC
 - holding down punch button
@@ -12,9 +10,9 @@ second screen starts at x46 y16
 - better 'stand up' animation
 - player 1 will always win ties re: punches. Need to add seperate colide phase to fix :(
 - anyone should be able to press x to restart the game
+- new sound for death
 
 #SHORT TERM TODO 
-- new sound for death
 
 #IF THERE IS ROOM
 - effect on death
