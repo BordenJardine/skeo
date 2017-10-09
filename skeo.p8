@@ -4,7 +4,7 @@ __lua__
 
 printh("\n\n-------\n-poop-\n-------")
 
-dev = false
+dev = true
 
 -- constants
 
@@ -577,12 +577,15 @@ end
 
 -- fx stuff
 function init_fx()
+	fire.init()
 	fx = {}
 end
 
 function update_fx()
-	for i=1,15 do
-		add(fx, fire.new(cam.x, cam.y+128))
+	if fire_level > 0 then
+		for i=1,15 do
+			add(fx, fire.new(cam.x, cam.y+128))
+		end
 	end
 
 	for f in all(fx) do
@@ -591,8 +594,11 @@ function update_fx()
 end
 
 -- fire class
-fire_life_cycle = { '\146', '\143', '\150', '\149', '\126' }
-fire_clrs = { 8, 8, 8, 9, 9, 10 }
+-- fire_life_cycle = { '\146', '\143', '\150', '\149', '\126' }
+fire_chars = {'\149', '\150', '\143', '\146'}
+fire_clrs = { 8, 8, 8, 8, 9, 9, 10 }
+fire_level = 0
+fire_life_cycle = {}
 fire_speed = 1
 fire = {
 	x = 0,
@@ -609,15 +615,25 @@ function fire.new(x, y)
 	return f
 end
 
+function fire.init()
+	fire_level = 0
+	fire_life_cycle = { '\126' }
+end
+
+function fire.level_up()
+	if(fire_level > #fire_chars) return
+	fire_life_cycle = unshift(fire_life_cycle, fire_chars[fire_level])
+	fire_level += 1
+end
+
 function fire:update()
 	if self.tx == #fire_life_cycle then
 		del(fx, self)
 		return
 	end
+	self.clr = select(fire_clrs)
 	if self.tx == #fire_life_cycle - 1 then
 		self.clr = 5
-	else
-		self.clr = select(fire_clrs)
 	end
 	if rnd(3) > 2 then
 		self.dir = not self.dir
@@ -657,6 +673,7 @@ function cam:update_scroll()
 	self.cooldown -= 1
 	if self.cooldown < 1 then
 		self.cooldown = scroll_cooldown
+		fire.level_up()
 		if not self.scrolling then
 			self.scrolling = true
 		elseif not dev and self.max_scroll_tx > 1 then
@@ -1020,6 +1037,14 @@ function copy(t) -- shallow-copy a table
 	for k, v in pairs(t) do target[k] = v end
 	-- setmetatable(target, meta)
 	return target
+end
+
+function unshift(arr, val)
+	local tmp = {val}
+	for v in all(arr) do
+		add(tmp,v)
+	end
+	return tmp
 end
 
 function zspr(n,w,h,dx,dy,dz)
