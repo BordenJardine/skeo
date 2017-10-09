@@ -763,14 +763,14 @@ function draw_player_select()
 	cls()
 	--printc('super kill each other',64,16,0,8,0)
 	draw_title()
-	printc('press \151 to join',   64,88,0,8,0)
-	if(#players == 1) printc('need at least two players',64,120,0,8,0)
+	printc('press \151 to join',   64,94,0,8,0)
+	if(#players == 1) printc('need at least two players',64,124,0,8,0)
 	if #players > 1  then 
-		printc(''..(flr(player_select_countdown/30)),64,104,0,8,0)
+		printc(''..(flr(player_select_countdown/30)),64,108,0,8,0)
 	end
 	local i = 0
 	for p in all(players) do
-		printc('\140', 16+32*i,104,0,player_info[p+1].clr,0)
+		printc('\140', 16+32*i,108,0,player_info[p+1].clr,0)
 		i += 1
 	end
 end
@@ -783,14 +783,14 @@ letter_sprites = {
 	o = 235, t = 236,
 }
 title = 'super kill each other '
-t_x = 16 + 4
+t_x = 16 + 3
 t_y = 16 + 4
 function draw_title()
 	local words = split(title, ' ')
 	local y = 4
 	for word in all(words) do
 		local x = 16 
-		if(word == 'kill' or word == 'each') x = x + 12 
+		if(word == 'kill' or word == 'each') x = x + 10 
 		letters = split(word, '')
 		for letter in all(letters) do
 			draw_letter_o(letter, x, y)
