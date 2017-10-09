@@ -38,9 +38,10 @@ default_got = 30
 game_over_timeout = 30
 players = {} -- players in the game
 actors = {} -- living players
+fx = {} -- particles and splosions n stuff
 
 player_info = {
-  {
+	{
 		player = 0,
 		clr = 7,
 		x = start_x + 8 * 1
@@ -574,6 +575,65 @@ function actor:advance_frame()
 end
 
 
+-- fx stuff
+function init_fx()
+	fx = {}
+end
+
+function update_fx()
+	for i=1,15 do
+		add(fx, fire.new(cam.x, cam.y+128))
+	end
+
+	for f in all(fx) do
+		f:update()
+	end
+end
+
+-- fire class
+fire_life_cycle = { '\146', '\143', '\150', '\149', '\126' }
+fire_clrs = { 8, 8, 8, 9, 9, 10 }
+fire_speed = 1
+fire = {
+	x = 0,
+	y = 0,
+	clr = 8,
+	dir = left,
+	tx = 0
+}
+function fire.new(x, y)
+	local f = setmetatable({}, { __index = fire }) 
+	f.x = x - 4 + rnd(136)
+	f.y = y
+	f.dir = (rnd(2) > 1) and left or right
+	return f
+end
+
+function fire:update()
+	if self.tx == #fire_life_cycle then
+		del(fx, self)
+		return
+	end
+	if self.tx == #fire_life_cycle - 1 then
+		self.clr = 5
+	else
+		self.clr = select(fire_clrs)
+	end
+	if rnd(3) > 2 then
+		self.dir = not self.dir
+	end
+	self.y -= fire_speed+rnd(2)
+	self.x += (self.dir and 2 or -2)
+	self.tx += 1
+end
+
+function fire:draw()
+	-- char = (rnd(2) > 1) and select(fire_life_cycle) or fire_life_cycle[self.tx]
+	char = fire_life_cycle[self.tx]
+	print(char,self.x,self.y,self.clr)
+end
+
+
 -- camera singleton
 cam = {}
 function cam:init()
@@ -693,6 +753,8 @@ function init_game()
 		add(actors, actr)
 	end
 
+	init_fx()
+
 	game_over = false
 end
 
@@ -708,6 +770,7 @@ function update_game()
 		update_actors()
 	end
 	cam:update()
+	update_fx()
 end
 
 function check_game_state()
@@ -730,10 +793,21 @@ end
 function draw_game()
 	cls()
 	camera(cam.x, cam.y)
+-- 	for f in all(fx) do
+-- 		f:draw()
+-- 	end
+	for i=1,#fx/2 do
+		fx[i]:draw()
+	end
 	scroller:draw_map()
 	for a in all(actors) do
 		a:draw()
 		a:advance_frame()
+	end
+	if #fx > 0 then
+		for j=flr(#fx/2),#fx do
+			fx[j]:draw()
+		end
 	end
 	if(game_over) draw_game_over()
 end
@@ -803,14 +877,14 @@ end
 function draw_letter(letter, x, y, clr)
 	pal(8, clr)
 	zspr(letter_sprites[letter], 1, 1, x, y, 2)
-  pal()
+	pal()
 end
 
 function draw_letter_o(letter, x, y)
-  for ix=-1,1  do for iy=-1,1 do
-    draw_letter(letter, x+ix+rnd(4)-2, y+iy+rnd(4)-1, 8)
-  end end
-  draw_letter(letter, x, y, 0)
+	for ix=-1,1 do for iy=-1,1 do
+		draw_letter(letter, x+ix+rnd(4)-2, y+iy+rnd(4)-1, 8)
+	end end
+	draw_letter(letter, x, y, 0)
 end
 
 function _init()
@@ -819,18 +893,18 @@ end
 
 function _update()
 	if current_mode == player_select then
-    update_player_select()
-  elseif current_mode == game then
-    update_game()
-  end
+		update_player_select()
+	elseif current_mode == game then
+		update_game()
+	end
 end
 
 function _draw()
 	if current_mode == player_select then
-    draw_player_select()
-  elseif current_mode == game then
-    draw_game()
-  end
+		draw_player_select()
+	elseif current_mode == game then
+		draw_game()
+	end
 end
 
 
@@ -939,7 +1013,7 @@ function select(t)
 	return t[flr(rnd(#t))+1]
 end
 
-function copy (t) -- shallow-copy a table
+function copy(t) -- shallow-copy a table
 	-- if type(t) ~= "table" then return t end
 	-- local meta = getmetatable(t)
 	local target = {}
@@ -949,13 +1023,13 @@ function copy (t) -- shallow-copy a table
 end
 
 function zspr(n,w,h,dx,dy,dz)
-  sx = 8 * (n % 16)
-  sy = 8 * flr(n / 16)
-  sw = 8 * w
-  sh = 8 * h
-  dw = sw * dz
-  dh = sh * dz
-  sspr(sx,sy,sw,sh, dx,dy,dw,dh)
+	sx = 8 * (n % 16)
+	sy = 8 * flr(n / 16)
+	sw = 8 * w
+	sh = 8 * h
+	dw = sw * dz
+	dh = sh * dz
+	sspr(sx,sy,sw,sh, dx,dy,dw,dh)
 end
 
 function split(str, char)
