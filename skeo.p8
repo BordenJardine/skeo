@@ -906,6 +906,12 @@ end
 
 function _init()
 	-- init_game()
+  music(0)
+
+  -- fx
+  -- poke(0x5f43, 1) -- lpf
+  -- poke(0x5f42, 2) -- distortion
+  poke(0x5f41, 12) -- reverb
 end
 
 function _update()
