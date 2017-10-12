@@ -27,7 +27,8 @@ S U P E R K I L A C H O T
 - [x] Combat
 - [x] Win State
 - [x] Vertical Scrolling
-- [v] Level Generation
+- [x] Level Generation
+- [x] Fire
 - [ ] Powerups
 - [ ] Music
 - [ ] Backgrounds and more tiles
