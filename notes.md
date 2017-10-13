@@ -1,13 +1,10 @@
 NOTES
 =====
 
-|  3 2  |  3 2  |  3 2  |  3 2  |
-|   | S | U | P | E | R |   |   |
-|   | K | I | L | L |   |   |   |
-|   | E | A | C | H |   |   |   |
-|   | O | T | H | E | R |   |   |
-
-S U P E R K I L A C H O T
+  Listen to 'I love techno' a bunch of times.
+  Build up the drums more slowly
+  layer two crazy sequencer lines on top of each other (bass vs lead)
+  Still do the up beat trill thing, but make it more interesting
 
 #BUGS ETC
 - holding down punch button
