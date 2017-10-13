@@ -595,8 +595,8 @@ end
 
 -- fire class
 -- fire_life_cycle = { '\146', '\143', '\150', '\149', '\126' }
-fire_chars = {'\150', '\143', '\146'}
-fire_clrs = { 8, 8, 8, 8, 9, 9, 10 }
+fire_clrs = { 7, 8, 8, 8, 8, 9, 9, 10 }
+fire_clrs = { 0 }
 fire_level = 0
 fire_life_cycle = {}
 fire_speed = 1
@@ -633,7 +633,7 @@ function fire:update()
 	end
 	self.clr = select(fire_clrs)
 	if self.tx == #fire_life_cycle - 1 then
-		self.clr = 5
+		self.clr = 5 -- smoke
 	end
 	if rnd(3) > 2 then
 		self.dir = not self.dir
@@ -1316,9 +1316,9 @@ __music__
 00 0a0b1112
 00 13154f14
 00 13164017
-00 1b4b191a
+00 1b4b595a
+00 1b5c191a
 00 1b5c1918
-00 1b1c1918
 02 1b1d1918
 00 0a434040
 00 00000000

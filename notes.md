@@ -5,6 +5,7 @@ NOTES
   Build up the drums more slowly
   layer two crazy sequencer lines on top of each other (bass vs lead)
   Still do the up beat trill thing, but make it more interesting
+  do the thing where the drums go away but the bass doesn't before bringing in the second line
 
 #BUGS ETC
 - holding down punch button
