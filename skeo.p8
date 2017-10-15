@@ -4,7 +4,7 @@ __lua__
 
 printh("\n\n-------\n-poop-\n-------")
 
-dev = true
+dev = false
 
 -- constants
 
