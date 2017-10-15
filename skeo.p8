@@ -882,7 +882,6 @@ end
 
 function draw_player_select()
 	cls()
-	--printc('super kill each other',64,16,0,8,0)
 	draw_title()
 	printc('press \151 to join',   64,94,0,8,0)
 	if(#players == 1) printc('need at least two players',64,124,0,8,0)
@@ -910,7 +909,7 @@ function draw_title()
 	local words = split(title, ' ')
 	local y = 4
 	for word in all(words) do
-		local x = 16 
+		local x = 20 
 		if(word == 'kill' or word == 'each') x = x + 10 
 		letters = split(word, '')
 		for letter in all(letters) do

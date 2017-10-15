@@ -2,10 +2,6 @@ NOTES
 =====
 
   Listen to 'I love techno' a bunch of times.
-  Build up the drums more slowly
-  layer two crazy sequencer lines on top of each other (bass vs lead)
-  Still do the up beat trill thing, but make it more interesting
-  do the thing where the drums go away but the bass doesn't before bringing in the second line
 
 #BUGS ETC
 - holding down punch button
@@ -15,9 +11,10 @@ NOTES
 - new sound for death
 
 #SHORT TERM TODO 
+- make 5 levels
+- randomize the starting level
 
 #IF THERE IS ROOM
-- effect on death
 - effect on victory
 
 #ARCS
@@ -30,7 +27,7 @@ NOTES
 - [ ] Powerups
 - [ ] Music
 - [ ] Backgrounds and more tiles
-- [v] Player Selection Screen
+- [x] Player Selection Screen
 - [ ] Opening
 - [ ] Revisit Levels
 - [ ] Revisit Animations
