@@ -4,7 +4,7 @@ __lua__
 
 printh("\n\n-------\n-poop-\n-------")
 
-dev = false
+dev = true
 
 -- constants
 
@@ -653,7 +653,7 @@ explosion = {
   off_clr = 7,
   blink = false,
   radius = 1,
-  max_radius = 20,
+  max_radius = 16,
   thickness = 3
 }
 function explosion.new(x, y, clr)
@@ -666,7 +666,7 @@ end
 
 function explosion:update()
   if self.radius > explosion.max_radius then
-    self.remove()
+    self:remove()
     return
   end
   self.blink = not self.blink
