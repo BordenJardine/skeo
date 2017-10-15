@@ -440,8 +440,7 @@ function actor:die_maybe()
 end
 
 function actor:explode()
-  hw = self.size / 2
-  add(fx, explosion.new(self.x + hw, self.y + hw, self.clr))
+  add(fx, explosion.new(self.x + self.size / 2, self.y, self.clr))
 end
 
 function actor:pick_animation()
