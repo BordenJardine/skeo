@@ -13,6 +13,7 @@ NOTES
 #SHORT TERM TODO 
 - make 5 levels
 - randomize the starting level
+- 3 lives
 
 #IF THERE IS ROOM
 - effect on victory
@@ -25,7 +26,7 @@ NOTES
 - [x] Level Generation
 - [x] Fire
 - [ ] Powerups
-- [ ] Music
+- [v] Music
 - [ ] Backgrounds and more tiles
 - [x] Player Selection Screen
 - [ ] Opening
