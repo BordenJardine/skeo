@@ -39,24 +39,29 @@ game_over_timeout = 30
 players = {} -- players in the game
 actors = {} -- living players
 fx = {} -- particles and splosions n stuff
+starting_lives = 3
 
 player_info = {
 	{
 		player = 0,
 		clr = 6,
-		x = start_x + 8 * 1
+		x = start_x + 8 * 1,
+		lives = starting_lives
 	}, {
 		player = 1,
 		clr = 8,
-		x = start_x + 8 * 13
+		x = start_x + 8 * 13,
+		lives = starting_lives
 	}, {
 		player = 2,
 		clr = 12,
-		x = start_x + 8 * 4
+		x = start_x + 8 * 4,
+		lives = starting_lives
 	},{
 		player = 3,
 		clr = 3,
-		x = start_x + 8 * 9
+		x = start_x + 8 * 9,
+		lives = starting_lives
 	}
 }
 
@@ -329,11 +334,11 @@ function actor:collide_ladder()
 	local y = self.y
 	local point = {self.x, self.y - self.size * 4}
 
-  local tile=scroller:map_get(point[1]/8, point[2]/8)
-  if fget(tile, 2) then
-    self.on_ladder = true
-    return true;
-  end
+	local tile=scroller:map_get(point[1]/8, point[2]/8)
+	if fget(tile, 2) then
+		self.on_ladder = true
+		return true;
+	end
 end
 
 function actor:collide_floor()
@@ -433,14 +438,16 @@ end
 function actor:die_maybe()
 	-- if off screen, remove from game
 	if(self.y < cam.y + 136) return
-  del(actors, self)
-  sfx(snd_bmp)
-  self:explode()
-  cam:shake(15,4)
+	del(actors, self)
+	sfx(snd_bmp)
+	p_info = player_info[self.player + 1]
+	p_info.lives -= 1
+	self:explode()
+	cam:shake(15,4)
 end
 
 function actor:explode()
-  add(fx, explosion.new(self.x + self.size / 2, self.y, self.clr))
+	add(fx, explosion.new(self.x + self.size / 2, self.y, self.clr))
 end
 
 function actor:pick_animation()
@@ -646,14 +653,14 @@ end
 
 -- player death explosions
 explosion = {
-  x = 0,
-  y = 0,
-  clr = 7,
-  off_clr = 7,
-  blink = false,
-  radius = 1,
-  max_radius = 16,
-  thickness = 3
+	x = 0,
+	y = 0,
+	clr = 7,
+	off_clr = 7,
+	blink = false,
+	radius = 1,
+	max_radius = 16,
+	thickness = 3
 }
 function explosion.new(x, y, clr)
 	local e = setmetatable({}, { __index = explosion }) 
@@ -664,27 +671,27 @@ function explosion.new(x, y, clr)
 end
 
 function explosion:update()
-  if self.radius > explosion.max_radius then
-    self:remove()
-    return
-  end
-  self.blink = not self.blink
-  self.radius += 3
+	if self.radius > explosion.max_radius then
+		self:remove()
+		return
+	end
+	self.blink = not self.blink
+	self.radius += 3
 end
 
 function explosion:draw()
-  for i=0,self.thickness do
-    circ(
-      self.x,
-      self.y,
-      max(1, self.radius - i),
-      self.blink and self.clr or self.off_clr
-    )
-  end
+	for i=0,self.thickness do
+		circ(
+			self.x,
+			self.y,
+			max(1, self.radius - i),
+			self.blink and self.clr or self.off_clr
+		)
+	end
 end
 
 function explosion:remove()
-  del(fx, self)
+	del(fx, self)
 end
 
 
@@ -774,17 +781,17 @@ function scroller:init_screens()
 		},
 	}
 
-  current_top = 0
-  current_screens = {}
-  self:add_screen()
-  self:add_screen()
+	current_top = 0
+	current_screens = {}
+	self:add_screen()
+	self:add_screen()
 end
 
 function scroller:add_screen()
-  local screen = copy(select(potential_screens))
-  screen.y = current_top
-  current_top -= screen_height_px
-  add(current_screens, screen)
+	local screen = copy(select(potential_screens))
+	screen.y = current_top
+	current_top -= screen_height_px
+	add(current_screens, screen)
 end
 
 function scroller:map_get(x, y)
@@ -806,9 +813,9 @@ function scroller:draw_map()
 		if mid(scrn.y-128, cam.y, scrn.y+screen_height*8) == cam.y then
 			map(0, 0, scrn.x, scrn.y, scrn.draw_width, 32) -- screen1
 		elseif cam.y < scrn.y-128 then
-      -- if we are above this screen, remove it and add a new one
-      del(current_screens, scrn)
-      self:add_screen()
+			-- if we are above this screen, remove it and add a new one
+			del(current_screens, scrn)
+			self:add_screen()
 		end
 	end
 end
@@ -885,11 +892,24 @@ function draw_game()
 end
 
 function draw_game_over()
+  draw_lives_left()
 	local clr = 13
 	local winner = actors[1]
 	if(winner) clr = winner.clr
 	printc(winner and 'super' or 'no survivors',cam.x + 64, cam.y + 56,0,clr,0)
 	printc(' press \151 to restart',cam.x + 56, cam.y + 64,0,clr,0)
+end
+
+function draw_lives_left()
+	for p in all(players) do
+		local p_info = player_info[p+1]
+		local lives = p_info.lives
+		if lives > 0 then
+			for i=1,lives,1 do
+				printc('\140', cam.x + p_info.x - start_x, cam.y + 8 + (8*i), 0, p_info.clr, 0)
+			end
+		end
+	end
 end
 
 player_select_countdown = (dev and 1 or 5) * 30 -- 5 secods
@@ -900,7 +920,7 @@ function update_player_select()
 			return
 		end
 		if(#players > 1) player_select_countdown -= 1
-		for i in all({0,1,2,3}) do
+		for i in all({0,1,2,3}) do -- TODO: normal for loop here
 			if(btn(4, i) and not includes(players, i)) add(players, i)
 		end
 end
@@ -960,19 +980,19 @@ end
 
 play_music = true
 function toggle_music()
-  play_music = not play_music
-  music(play_music and 0 or -1)
+	play_music = not play_music
+	music(play_music and 0 or -1)
 end
 
 function _init()
 	-- init_game()
-  music(0)
+	music(0)
 
-  -- fx
-  -- poke(0x5f43, 1) -- lpf
-  -- poke(0x5f42, 2) -- distortion
-  poke(0x5f41, 12) -- reverb
-  menuitem(2, "toggle music", toggle_music)
+	-- fx
+	-- poke(0x5f43, 1) -- lpf
+	-- poke(0x5f42, 2) -- distortion
+	poke(0x5f41, 12) -- reverb
+	menuitem(2, "toggle music", toggle_music)
 end
 
 function _update()
