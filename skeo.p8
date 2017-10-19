@@ -698,8 +698,6 @@ end
 
 function bg_doodad:update()
 	if(self.y > cam.y + 128 + 32) del(bg_doodads, self)
-	printh('doodad '..self.y)
-	printh('cam '..cam.y)
 end
 
 function bg_doodad:draw()
