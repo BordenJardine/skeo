@@ -27,8 +27,8 @@ NOTES
 - [v] Music
 - [ ] Backgrounds and more tiles
   - [x] more tiles
-  - [x] bg doodads
-  - [x] fg doodads?
+  - [v] bg doodads
+  - [ ] fg doodads?
 - [x] Player Selection Screen
 - [ ] Opening
 - [ ] Rounds

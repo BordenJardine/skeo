@@ -40,6 +40,7 @@ game_over_timeout = 30
 players = {} -- players in the game
 actors = {} -- living players
 fx = {} -- particles and splosions n stuff
+bg_doodads = {}
 starting_lives = 3
 
 player_info = {
@@ -594,6 +595,11 @@ function update_fx()
 	for f in all(fx) do
 		f:update()
 	end
+
+	bg_doodad.update_all()
+	for d in all(bg_doodads) do
+		d:update()
+	end
 end
 
 -- fire class
@@ -651,6 +657,46 @@ function fire:draw()
 	print(char,self.x,self.y,self.clr)
 end
 
+-- bg_doodad class
+bg_doodad_timer_max = 450
+bg_doodad = {
+	x = 0,
+	y = 0,
+	timer = 0,
+	sprite = 0
+}
+bg_sprites = {72, 74, 104, 106}
+function bg_doodad.new(x, y)
+	local d = setmetatable({}, { __index = bg_doodad }) 
+	d.x = x + rnd(136)
+	d.y = y
+	d.sprite = select(bg_sprites)
+	return d
+end
+
+function bg_doodad.init()
+	bg_doodad.timer = bg_doodad_timer_max
+end
+
+function bg_doodad.update_all()
+	bg_doodad.timer -= 1
+	if(bg_doodad.timer > 0) return
+	bg_doodad.create_doodad()
+	bg_doodad.timer = bg_doodad_timer_max
+end
+
+function bg_doodad.create_doodad()
+	add(bg_doodads, bg_doodad.new(cam.x-16, cam.y-32))
+end
+
+function bg_doodad:update()
+	if(self.y > cam.y + 128 + 32) del(bg_doodads, self)
+end
+
+function bg_doodad:draw()
+	zspr(self.sprite, 2, 2, self.x, self.y, 2)
+end
+
 
 -- player death explosions
 explosion = {
@@ -698,12 +744,15 @@ end
 
 -- camera singleton
 cam = {}
+paralax_factor = 16
 function cam:init()
 	self.x = start_x
 	self.y = start_y
 	self.scrolling = dev
 	self.max_scroll_tx = starting_scroll_speed
 	self.scroll_tx = starting_scroll_speed
+	self.bg_max_scroll_tx = starting_scroll_speed * paralax_factor
+	self.bg_scroll_tx = starting_scroll_speed * paralax_factor
 	self.cooldown = scroll_cooldown -- change scrolling speed every so often
 	self.shake_remaining=0
 	self.shake_force = 0
@@ -712,6 +761,7 @@ end
 function cam:update()
 	if(not game_over) self:update_scroll()
 	self:update_shake()
+	self.bg_max_scroll_tx = starting_scroll_speed * paralax_factor
 end
 
 function cam:update_scroll()
@@ -734,6 +784,15 @@ function cam:update_scroll()
 	if self.scroll_tx < 1 then
 		self.scroll_tx = self.max_scroll_tx
 		self.y -= 1
+	end
+
+	-- scroll background
+	self.bg_scroll_tx = self.bg_scroll_tx - 1
+	if self.bg_scroll_tx < 1 then
+		self.bg_scroll_tx = self.bg_max_scroll_tx
+		for doodad in all(bg_doodads) do
+			doodad.y -= 1
+		end
 	end
 end
 
@@ -778,7 +837,7 @@ function scroller:init_screens()
 			name = 'c',
 			x = screen_draw_offset * 2,
 			y = 0,
-			draw_width = start_cell_x  + screen_width * 3
+			draw_width = start_cell_x + screen_width * 3
 		},
 	}
 
@@ -882,6 +941,9 @@ end
 function draw_game()
 	cls()
 	camera(cam.x, cam.y)
+	for d in all(bg_doodads) do
+		d:draw()
+	end
 	scroller:draw_map()
 	for a in all(actors) do
 		a:draw()
@@ -891,11 +953,11 @@ function draw_game()
 		f:draw()
 	end
 	if(game_over) draw_game_over()
-  if(dev) draw_stat()
+	if(dev) draw_stat()
 end
 
 function draw_game_over()
-  draw_lives_left()
+	draw_lives_left()
 	local clr = 13
 	local winner = actors[1]
 	if(winner) clr = winner.clr
@@ -916,7 +978,7 @@ function draw_lives_left()
 end
 
 function draw_stat()
-  print(stat(1), cam.x, cam.y, 10)
+	print(stat(1), cam.x, cam.y, 10)
 end
 
 player_select_countdown = (dev and 1 or 5) * 30 -- 5 secods
@@ -935,9 +997,9 @@ end
 function draw_player_select()
 	cls()
 	draw_title()
-	printc('press \151 to join',   64,94,0,8,0)
+	printc('press \151 to join', 64,94,0,8,0)
 	if(#players == 1) printc('need at least two players',64,124,0,8,0)
-	if #players > 1  then 
+	if #players > 1 then 
 		printc(''..(flr(player_select_countdown/30)),64,108,0,8,0)
 	end
 	local i = 0
@@ -993,7 +1055,7 @@ end
 
 function _init()
 	-- init_game()
-	music(0)
+	toggle_music()
 
 	-- fx
 	-- poke(0x5f43, 1) -- lpf
