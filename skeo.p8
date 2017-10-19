@@ -663,20 +663,21 @@ bg_doodad = {
 	timer_max = 0,
 	sprite = 0
 }
-bg_sprites = {72, 74, 104, 106}
+bg_sprites = {72, 74, 76, 104, 106}
+function bg_doodad.init()
+  bg_doodads = {}
+	bg_doodad.timer_max = 150 * cam.paralax_factor --cooldown between making doodads
+	bg_doodad.timer = bg_doodad.timer_max
+
+	bg_doodad.create_doodad(flr(rnd(144)))
+end
+
 function bg_doodad.new(x, y)
 	local d = setmetatable({}, { __index = bg_doodad }) 
 	d.x = x + rnd(136)
 	d.y = y
 	d.sprite = select(bg_sprites)
 	return d
-end
-
-function bg_doodad.init()
-	bg_doodad.timer_max = 50 * cam.paralax_factor --cooldown between making doodads
-	bg_doodad.timer = bg_doodad.timer_max
-
-	bg_doodad.create_doodad(flr(rnd(144)))
 end
 
 function bg_doodad.update_all()
@@ -693,7 +694,7 @@ end
 
 function bg_doodad.create_doodad(y_offset)
 	if(y_offset == nil) y_offset = 0
-	add(bg_doodads, bg_doodad.new(cam.x-16, cam.y-32+y_offset))
+	add(bg_doodads, bg_doodad.new(cam.x-16, cam.y-48+y_offset))
 end
 
 function bg_doodad:update()
@@ -701,7 +702,7 @@ function bg_doodad:update()
 end
 
 function bg_doodad:draw()
-	zspr(self.sprite, 2, 2, self.x, self.y, 2)
+	zspr(self.sprite, 2, 2, self.x, self.y, 3)
 end
 
 
@@ -753,7 +754,7 @@ end
 cam = {}
 
 function cam:init()
-	self.paralax_factor = 5 -- scrolling frames betweens moving the bg
+	self.paralax_factor = 6 -- scrolling frames betweens moving the bg
 	self.x = start_x
 	self.y = start_y
 	self.scrolling = dev
