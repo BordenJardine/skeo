@@ -582,6 +582,7 @@ end
 -- fx stuff
 function init_fx()
 	fire.init()
+	bg_doodad.init()
 	fx = {}
 end
 
@@ -597,9 +598,6 @@ function update_fx()
 	end
 
 	bg_doodad.update_all()
-	for d in all(bg_doodads) do
-		d:update()
-	end
 end
 
 -- fire class
@@ -658,11 +656,11 @@ function fire:draw()
 end
 
 -- bg_doodad class
-bg_doodad_timer_max = 100
 bg_doodad = {
 	x = 0,
 	y = 0,
 	timer = 0,
+	timer_max = 0,
 	sprite = 0
 }
 bg_sprites = {72, 74, 104, 106}
@@ -675,22 +673,33 @@ function bg_doodad.new(x, y)
 end
 
 function bg_doodad.init()
-	bg_doodad.timer = bg_doodad_timer_max
+	bg_doodad.timer_max = 50 * cam.paralax_factor --cooldown between making doodads
+	bg_doodad.timer = bg_doodad.timer_max
+
+	bg_doodad.create_doodad(flr(rnd(144)))
 end
 
 function bg_doodad.update_all()
 	bg_doodad.timer -= 1
-	if(bg_doodad.timer > 0) return
-	if(rnd(1) > 0.4) bg_doodad.create_doodad()
-	bg_doodad.timer = bg_doodad_timer_max
+	if bg_doodad.timer < 1 then
+		if(rnd(1) > 0.4) bg_doodad.create_doodad()
+		bg_doodad.timer = bg_doodad.timer_max
+	end
+
+	for d in all(bg_doodads) do
+		d:update()
+	end
 end
 
-function bg_doodad.create_doodad()
-	add(bg_doodads, bg_doodad.new(cam.x-16, cam.y-32))
+function bg_doodad.create_doodad(y_offset)
+	if(y_offset == nil) y_offset = 0
+	add(bg_doodads, bg_doodad.new(cam.x-16, cam.y-32+y_offset))
 end
 
 function bg_doodad:update()
 	if(self.y > cam.y + 128 + 32) del(bg_doodads, self)
+	printh('doodad '..self.y)
+	printh('cam '..cam.y)
 end
 
 function bg_doodad:draw()
@@ -744,15 +753,15 @@ end
 
 -- camera singleton
 cam = {}
-paralax_factor = 16
+
 function cam:init()
+	self.paralax_factor = 5 -- scrolling frames betweens moving the bg
 	self.x = start_x
 	self.y = start_y
 	self.scrolling = dev
 	self.max_scroll_tx = starting_scroll_speed
 	self.scroll_tx = starting_scroll_speed
-	self.bg_max_scroll_tx = starting_scroll_speed * paralax_factor
-	self.bg_scroll_tx = starting_scroll_speed * paralax_factor
+	self.bg_cooldown = self.paralax_factor
 	self.cooldown = scroll_cooldown -- change scrolling speed every so often
 	self.shake_remaining=0
 	self.shake_force = 0
@@ -761,7 +770,6 @@ end
 function cam:update()
 	if(not game_over) self:update_scroll()
 	self:update_shake()
-	self.bg_max_scroll_tx = starting_scroll_speed * paralax_factor
 end
 
 function cam:update_scroll()
@@ -784,14 +792,14 @@ function cam:update_scroll()
 	if self.scroll_tx < 1 then
 		self.scroll_tx = self.max_scroll_tx
 		self.y -= 1
-	end
-
-	-- scroll background
-	self.bg_scroll_tx = self.bg_scroll_tx - 1
-	if self.bg_scroll_tx < 1 then
-		self.bg_scroll_tx = self.bg_max_scroll_tx
-		for doodad in all(bg_doodads) do
-			doodad.y -= 1
+		-- scroll bg doodads
+		self.bg_cooldown -= 1
+		if self.bg_cooldown < 1 then
+			self.bg_cooldown = self.paralax_factor
+		else
+			for doodad in all(bg_doodads) do
+				doodad.y -= 1
+			end
 		end
 	end
 end
