@@ -7,7 +7,7 @@ NOTES
 - maybe clean up animations if we need room
 - better 'stand up' animation
 - player 1 will always win ties re: punches. Need to add seperate colide phase to fix :(
-- death and bumping into each other shouldn't share noises
+- plug holes in floor of maps b and c
 
 # SHORT TERM TODO 
 - make 5 levels
