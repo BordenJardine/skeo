@@ -658,7 +658,7 @@ function fire:draw()
 end
 
 -- bg_doodad class
-bg_doodad_timer_max = 450
+bg_doodad_timer_max = 100
 bg_doodad = {
 	x = 0,
 	y = 0,
@@ -681,7 +681,7 @@ end
 function bg_doodad.update_all()
 	bg_doodad.timer -= 1
 	if(bg_doodad.timer > 0) return
-	bg_doodad.create_doodad()
+	if(rnd(1) > 0.4) bg_doodad.create_doodad()
 	bg_doodad.timer = bg_doodad_timer_max
 end
 
