@@ -41,7 +41,7 @@ players = {} -- players in the game
 actors = {} -- living players
 fx = {} -- particles and splosions n stuff
 bg_doodads = {}
-starting_lives = 3
+starting_lives = 1
 
 player_info = {
 	{
@@ -443,9 +443,12 @@ function actor:die_maybe()
 	del(actors, self)
 	sfx(snd_bom)
 	p_info = player_info[self.player + 1]
-	p_info.lives -= 1
 	self:explode()
 	cam:shake(15,4)
+	p_info.lives -= 1
+	if p_info.lives < 1 then
+		del(players, self.player)
+	end
 end
 
 function actor:explode()
@@ -896,7 +899,9 @@ game = 2
 conclusion = 3
 current_mode = player_select
 
+-- game mode
 function init_game()
+	current_mode = game
 	--init cam
 	cam:init()
 	scroller:init_screens()
@@ -914,13 +919,10 @@ function init_game()
 end
 
 function update_game()
-	check_game_state()
+	check_round_state()
 	if round_over and round_over_timeout == 0 then
-		if #actors > 0 then
-			if(btn(4, actors[1].player)) init_game()
-		else
-			if(any_btn(4)) init_game()
-		end
+		if(check_game_over()) return
+		check_new_round_input()
 	else
 		update_actors()
 	end
@@ -928,7 +930,15 @@ function update_game()
 	update_fx()
 end
 
-function check_game_state()
+function check_new_round_input()
+	if #actors > 0 then
+		if(btn(4, actors[1].player)) init_game()
+	else
+		if(any_btn(4)) init_game()
+	end
+end
+
+function check_round_state()
 	if round_over or #actors < (dev and 1 or 2) then
 		if not round_over then -- game just ended
 			round_over = true
@@ -937,6 +947,12 @@ function check_game_state()
 			round_over_timeout = max(0, round_over_timeout - 1)
 		end
 	end
+end
+
+function check_game_over()
+	if(#players > 1) return false
+	init_conclusion()
+	return true
 end
 
 function update_actors()
@@ -959,7 +975,7 @@ function draw_game()
 	for f in all(fx) do
 		f:draw()
 	end
-	if(round_over) draw_round_over()
+	if(round_over and #players > 1) draw_round_over()
 	if(dev) draw_stat()
 end
 
@@ -988,10 +1004,21 @@ function draw_stat()
 	print(stat(1), cam.x, cam.y, 10)
 end
 
+
+-- player select mode
 player_select_countdown = (dev and 1 or 5) * 30 -- 5 secods
+
+function init_player_select()
+	players = {}
+	-- restart the lives
+	current_mode = player_select
+	for p_i in all(player_info) do
+		p_i.lives = starting_lives
+	end
+end
+
 function update_player_select()
 		if player_select_countdown < 1 then
-			current_mode = game
 			init_game()
 			return
 		end
@@ -1054,6 +1081,33 @@ function draw_letter_o(letter, x, y)
 	draw_letter(letter, x, y, 0)
 end
 
+-- conclusion mode
+conclusion_timeout = 0
+function init_conclusion()
+	conclusion_timeout = 10 * 30 -- ten seconds
+	current_mode = conclusion
+end
+
+function update_conclusion()
+	if #players > 0 then
+		if(btn(4, players[1])) init_player_select()
+	else
+		conclusion_timeout -= 1
+		if(conclusion_timeout < 1) init_player_select()
+	end
+end
+
+function draw_conclusion()
+	cls()
+	camera(0,0)
+	local clr = 13
+	local winner = players[1] + 1
+	if(winner) clr = player_info[winner].clr
+	printc(winner and ('you win!') or 'nobody wins!',64,56,0,clr,0)
+	printc(' press \151 to continue',56,64,0,clr,0)
+end
+
+
 play_music = true
 function toggle_music()
 	play_music = not play_music
@@ -1071,11 +1125,14 @@ function _init()
 	menuitem(2, "toggle music", toggle_music)
 end
 
+-- TODO Dry up this stuff
 function _update()
 	if current_mode == player_select then
 		update_player_select()
 	elseif current_mode == game then
 		update_game()
+	elseif current_mode == conclusion then
+		update_conclusion()
 	end
 end
 
@@ -1084,6 +1141,8 @@ function _draw()
 		draw_player_select()
 	elseif current_mode == game then
 		draw_game()
+	elseif current_mode == conclusion then
+		draw_conclusion()
 	end
 end
 
