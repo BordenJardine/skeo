@@ -1079,8 +1079,8 @@ function draw_conclusion()
 		draw_word('you',4,56, 7, clr)
 		draw_word('win',72,56, 7, clr)
 	else
-		draw_word('nobody',8,48, 0, clr)
-		draw_word('wins',26,70, 0, clr)
+		draw_word('losers',8,56, 0, clr)
+		-- draw_word('wins',26,70, 0, clr)
 	end
 end
 
