@@ -11,7 +11,6 @@ NOTES
 
 # SHORT TERM TODO 
 - make 5 levels
-- 3 lives
 
 # IF THERE IS ROOM
 - effect on victory
@@ -30,8 +29,9 @@ NOTES
   - [v] bg doodads
   - [ ] fg doodads?
 - [x] Player Selection Screen
-- [ ] Opening
-- [ ] Rounds
+- [x] Opening
+- [x] Rounds
+  - [ ] win based on lives
   - [ ] effect on victory
   - [ ] effect on win
 - [ ] Revisit Levels
@@ -44,14 +44,7 @@ NOTES
 
 Listen to 'I love techno' a bunch of times.
   
-## Breakdown:
-- chord progression with saw wave beeps on ch 2 and trill on ch 3
-- join chords on ch 1 with intervals and slightly more variation
-- maybe try to use the theme from the beginning of the song here?
-- come in with bass drum and more techno-y hi hat pattern at some point? 
-- Maybe save the hi hats for the next techno-y part
-
-## Total structure:
+## Ending
 - Come up from chord-y breakdown into more hard techno
 - lose the beat a litle
 - long build up
