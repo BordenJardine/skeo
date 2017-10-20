@@ -22,20 +22,23 @@ NOTES
 - [x] Vertical Scrolling
 - [x] Level Generation
 - [x] Fire
+- [ ] Tagging
 - [ ] Powerups
 - [v] Music
 - [ ] Backgrounds and more tiles
   - [x] more tiles
-  - [v] bg doodads
-  - [ ] fg doodads?
+  - [x] bg doodads
+  - [n] more bg doodads
+  - [n] fg doodads?
 - [x] Player Selection Screen
 - [x] Opening
+  - [n] Weird sounds in opening
 - [x] Rounds
-  - [ ] win based on lives
-  - [ ] effect on victory
-  - [ ] effect on win
+  - [x] win based on lives
+  - [n] effect on win
+  - [n] effect on conclusion
 - [ ] Revisit Levels
-  - [ ] More Levels
+  - [n] ~ 5 Levels
   - [ ] Tweak Levels
 - [ ] Revisit Animations
 - [ ] Tweak It Till It's Fun

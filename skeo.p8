@@ -12,6 +12,8 @@ grav = 0.3
 left = true -- these are for facing
 right = false
 
+tag_length = 3 * 30 -- seconds after a punch a player should get credit for a kill
+
 start_cell_x = 29
 start_cell_y = 16
 start_x = start_cell_x * 8 -- where to draw initial cam
@@ -146,7 +148,7 @@ actor = {
 	clr = 7,
 	x = start_x + 8,
 	y = start_y + (14 * 8),
-	dx = 0,
+	dx = 0, -- current speed
 	dy = 0,
 	max_dx = 4,--max x speed
 	max_dy = 5,--max y speed
@@ -159,7 +161,7 @@ actor = {
 	jmp_ended = false,
 	jmp_ticks = 0,
 	max_jmp_time = 8,--max time jump can be held
-	size = 2,
+	size = 2, -- 2 8*8 sprites
 	run_anim = run_anim,
 	jmp_anim = jmp_anim,
 	idle_anim = idle_anim,
@@ -190,6 +192,7 @@ actor = {
 	collision_offset = 4,
 	punch_y_offset = 4, -- your fist is in front of you
 	punch_force = 1,
+	tag = nil
 }
 function actor.new(settings)
 	local dude = setmetatable((settings or {}), { __index = actor }) 
@@ -226,6 +229,7 @@ function actor:update()
 	self:update_punch()
 
 	self:screen_wrap()
+	self:update_tag()
 	self:die_maybe()
 end
 
@@ -367,7 +371,7 @@ end
 
 function actor:collide_player()
 	for other in all(actors) do
-		collide_actors(self, other) 
+		collide_actors(self, other)
 	end
 end
 
@@ -411,18 +415,24 @@ function actor:punch(other)
 		 other.downed then
 		return false
 	end
-	local offset = actor.collision_offset
+	-- local offset = actor.collision_offset
 	local act_size = other.size * 8
 	local px = self.x + (self.facing == left and 0 or act_size)
 	local py = self.y + self.punch_y_offset
-	local ox = other.x -- + offset (trying to make punching for forgiving and useful)
+	local ox = other.x -- + offset (removing to make punching forgiving and useful)
 	local oy = other.y
 	local ow = act_size -- - offset
 	local oh = act_size
 	if intersects_point_box(px,py,ox,oy,ow,oh) then
 		local force = self.punch_force * (self.facing == left and -1 or 1)
-		other:apply_force(force, 4)
-		return true
+		local felled = other:apply_force(force, 4)
+		if felled then -- maybe we'll get a life out of this!
+			other.tag = {
+				player_info = player_info[self.player+1],
+				ttl = tag_length
+			}
+		end
+		return felled
 	end
 end
 
@@ -437,6 +447,13 @@ function actor:update_nap()
 	end
 end
 
+-- maybe timeout any tags this actor has received
+function actor:update_tag()
+	if(not self.tag) return
+	self.tag.ttl -= 1
+	if(self.tag.ttl < 1) self.tag = nil
+end
+
 function actor:die_maybe()
 	-- if off screen, remove from game
 	if(self.y < cam.y + 136) return
@@ -448,6 +465,10 @@ function actor:die_maybe()
 	p_info.lives -= 1
 	if p_info.lives < 1 then
 		del(players, self.player)
+	end
+	if self.tag then
+		printh('nice!')
+		self.tag.player_info.lives += 1
 	end
 end
 
@@ -782,8 +803,8 @@ function cam:update_scroll()
 		fire.level_up()
 		if not self.scrolling then
 			self.scrolling = true
-		elseif not dev and self.max_scroll_tx > 1 then
-			self.max_scroll_tx = max(self.max_scroll_tx / 2, 1)
+		-- elseif not dev and self.max_scroll_tx > 1 then  TODO: think about scrolling speed
+		-- 	self.max_scroll_tx = max(self.max_scroll_tx / 2, 1)
 		end
 	end
 
