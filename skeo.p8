@@ -41,7 +41,7 @@ players = {} -- players in the game
 actors = {} -- living players
 fx = {} -- particles and splosions n stuff
 bg_doodads = {}
-starting_lives = 1
+starting_lives = 3
 
 player_info = {
 	{
@@ -1101,8 +1101,11 @@ function draw_conclusion()
 	cls()
 	camera(0,0)
 	local clr = 13
-	local winner = players[1] + 1
-	if(winner) clr = player_info[winner].clr
+	local winner = players[1]
+	if winner then
+		winner += 1
+		clr = player_info[winner].clr
+	end
 	printc(winner and ('you win!') or 'nobody wins!',64,56,0,clr,0)
 	printc(' press \151 to continue',56,64,0,clr,0)
 end
