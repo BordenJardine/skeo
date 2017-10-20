@@ -34,9 +34,9 @@ snd_lnd = 4
 snd_bmp = 5
 
 -- game state
-game_over = false
-default_got = 30
-game_over_timeout = 30
+round_over = false
+default_rot = 30
+round_over_timeout = 30 -- give it a sec to settle down
 players = {} -- players in the game
 actors = {} -- living players
 fx = {} -- particles and splosions n stuff
@@ -767,7 +767,7 @@ function cam:init()
 end
 
 function cam:update()
-	if(not game_over) self:update_scroll()
+	if(not round_over) self:update_scroll()
 	self:update_shake()
 end
 
@@ -910,12 +910,12 @@ function init_game()
 
 	init_fx()
 
-	game_over = false
+	round_over = false
 end
 
 function update_game()
 	check_game_state()
-	if game_over and game_over_timeout == 0 then
+	if round_over and round_over_timeout == 0 then
 		if #actors > 0 then
 			if(btn(4, actors[1].player)) init_game()
 		else
@@ -929,12 +929,12 @@ function update_game()
 end
 
 function check_game_state()
-	if game_over or #actors < (dev and 1 or 2) then
-		if not game_over then -- game just ended
-			game_over = true
-			game_over_timeout = default_got
+	if round_over or #actors < (dev and 1 or 2) then
+		if not round_over then -- game just ended
+			round_over = true
+			round_over_timeout = default_rot
 		else
-			game_over_timeout = max(0, game_over_timeout - 1)
+			round_over_timeout = max(0, round_over_timeout - 1)
 		end
 	end
 end
@@ -959,17 +959,17 @@ function draw_game()
 	for f in all(fx) do
 		f:draw()
 	end
-	if(game_over) draw_game_over()
+	if(round_over) draw_round_over()
 	if(dev) draw_stat()
 end
 
-function draw_game_over()
+function draw_round_over()
 	draw_lives_left()
 	local clr = 13
 	local winner = actors[1]
 	if(winner) clr = winner.clr
 	printc(winner and 'super' or 'no survivors',cam.x + 64, cam.y + 56,0,clr,0)
-	printc(' press \151 to restart',cam.x + 56, cam.y + 64,0,clr,0)
+	printc(' press \151 to continue',cam.x + 56, cam.y + 64,0,clr,0)
 end
 
 function draw_lives_left()
