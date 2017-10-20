@@ -428,6 +428,7 @@ function actor:punch(other)
 		local felled = other:apply_force(force, 4)
 		if felled then -- maybe we'll get a life out of this!
 			other.tag = {
+				actor = self,
 				player_info = player_info[self.player+1],
 				ttl = tag_length
 			}
@@ -466,8 +467,17 @@ function actor:die_maybe()
 	if p_info.lives < 1 then
 		del(players, self.player)
 	end
-	if self.tag then
-		printh('nice!')
+	local tag = self.tag
+	if tag then
+		local word = select(nice_words)
+		local clr = 6
+		if(word == '\135') clr = 8
+		add(fx, word_effect.new({
+			str = word,
+			clr = clr,
+			x = tag.actor.x + tag.actor.size / 2,
+			y = tag.actor.y
+		}))
 		self.tag.player_info.lives += 1
 	end
 end
@@ -678,6 +688,44 @@ function fire:draw()
 	char = fire_life_cycle[self.tx]
 	print(char,self.x,self.y,self.clr)
 end
+
+
+-- word class
+nice_words = {
+	'nice!',
+	'murderer!',
+	'\135',
+	'toasty!'
+}
+word_effect = {
+	str = '',
+	x = x,
+	y = y,
+	ttl = 3 * 30, -- 5 seconds
+	clr = 6,
+	clr_high = 7,
+	clr_low = 1,
+	bg_clr = 1,
+}
+function word_effect.new(settings)
+	local w = setmetatable((settings or {}), { __index = word_effect })
+	return w
+end
+
+function word_effect:update()
+	self.ttl -= 1
+	self.ttl -= 1
+
+	if(self.ttl % 3 == 0) self.y -= 1
+	if(self.ttl < 1) del(fx, self)
+end
+
+function word_effect:draw()
+	clr = self.ttl % 2 == 0 and self.clr_high or self.clr
+	if(self.ttl < 15) clr = self.clr_low
+	printc(self.str,self.x,self.y,clr,self.bg_clr,0)
+end
+
 
 -- bg_doodad class
 bg_doodad = {
