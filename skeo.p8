@@ -694,7 +694,7 @@ word_effect = {
 	str = '',
 	x = x,
 	y = y,
-	ttl = 3 * 30, -- 5 seconds
+	ttl = 2 * 30, -- 5 seconds
 	clr = 6,
 	clr_high = 7,
 	clr_low = 1,
@@ -714,7 +714,7 @@ end
 
 function word_effect:draw()
 	clr = ((self.ttl % 2) == 0) and self.clr_high or self.clr
-	if(self.ttl < 15) clr = self.clr_low
+	if(self.ttl < 10) clr = self.clr_low
 	printc(self.str,self.x,self.y,clr,self.bg_clr,0)
 end
 
