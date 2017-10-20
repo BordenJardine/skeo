@@ -21,7 +21,8 @@ start_y = start_cell_y * 8
 p2_strt_x = start_x + 8 * 13
 
 starting_scroll_speed = 2
-scroll_cooldown = 450 -- 15 seconds
+-- scroll_cooldown = 450 -- 15 seconds
+scroll_cooldown = 150 -- 15 seconds
 
 --screen stuff
 screen_height = 32 -- cells
@@ -469,15 +470,7 @@ function actor:die_maybe()
 	end
 	local tag = self.tag
 	if tag then
-		local word = select(nice_words)
-		local clr = 6
-		if(word == '\135') clr = 8
-		add(fx, word_effect.new({
-			str = word,
-			clr = clr,
-			x = tag.actor.x + tag.actor.size / 2,
-			y = tag.actor.y
-		}))
+		congratulate(tag.actor)
 		self.tag.player_info.lives += 1
 	end
 end
@@ -714,16 +707,32 @@ end
 
 function word_effect:update()
 	self.ttl -= 1
-	self.ttl -= 1
 
 	if(self.ttl % 3 == 0) self.y -= 1
 	if(self.ttl < 1) del(fx, self)
 end
 
 function word_effect:draw()
-	clr = self.ttl % 2 == 0 and self.clr_high or self.clr
+	clr = ((self.ttl % 2) == 0) and self.clr_high or self.clr
 	if(self.ttl < 15) clr = self.clr_low
 	printc(self.str,self.x,self.y,clr,self.bg_clr,0)
+end
+
+function congratulate(actor)
+	local word = select(nice_words)
+	local clr = 6
+	local clr_high = 7
+	if word == '\135' then
+		clr = 8
+		clr_high = 14
+	end
+	add(fx, word_effect.new({
+		str = word,
+		clr = clr,
+		clr_high = clr_high,
+		x = actor.x + actor.size / 2,
+		y = actor.y
+	}))
 end
 
 
@@ -1166,7 +1175,7 @@ splash_words = {
 	'programming',
 	'design'
 }
-splash_word_time = 15
+splash_word_time = 10
 splash_timer = splash_word_time
 splash_word_index = 1
 function update_splash()
