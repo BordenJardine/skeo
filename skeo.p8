@@ -41,7 +41,7 @@ players = {} -- players in the game
 actors = {} -- living players
 fx = {} -- particles and splosions n stuff
 bg_doodads = {}
-starting_lives = 1
+starting_lives = 3
 
 player_info = {
 	{
@@ -893,11 +893,11 @@ end
 
 -- game loop stuff
 
-intro = 0
+splash = 0
 player_select = 1
 game = 2
 conclusion = 3
-current_mode = player_select
+current_mode = splash
 
 -- game mode
 function init_game()
@@ -1007,7 +1007,12 @@ end
 
 -- player select mode
 player_select_countdown = 0
+music_started = false
 function init_player_select()
+	if(play_music and not music_started) then
+		music(0)
+		music_started = true
+	end
 	player_select_countdown = (dev and 1 or 5) * 30 -- 5 secods
 	players = {}
 	-- restart the lives
@@ -1085,27 +1090,56 @@ function draw_conclusion()
 end
 
 
+-- splash screen
+splash_words = {
+	'music',
+	'art',
+	'programming',
+	'design'
+}
+splash_word_time = 15
+splash_timer = splash_word_time
+splash_word_index = 1
+function update_splash()
+	splash_timer -= 1
+	if splash_timer < 1 then
+		splash_word_index += 1
+		splash_timer = splash_word_time
+		if splash_word_index > #splash_words then
+			init_player_select()
+		end
+	end
+end
+
+function draw_splash()
+		cls()
+		printc(splash_words[splash_word_index], 64,44,7,0,0)
+		draw_word('borden',8,56, 7, 5)
+end
+
+
 play_music = true
 function toggle_music()
 	play_music = not play_music
 	music(play_music and 0 or -1)
 end
 
+
 function _init()
 	-- init_game()
-	toggle_music()
 
 	-- fx
 	-- poke(0x5f43, 1) -- lpf
 	-- poke(0x5f42, 2) -- distortion
 	poke(0x5f41, 12) -- reverb
 	menuitem(2, "toggle music", toggle_music)
-	init_player_select()
 end
 
 -- todo dry up this stuff
 function _update()
-	if current_mode == player_select then
+	if current_mode == splash then
+		update_splash()
+	elseif current_mode == player_select then
 		update_player_select()
 	elseif current_mode == game then
 		update_game()
@@ -1115,7 +1149,9 @@ function _update()
 end
 
 function _draw()
-	if current_mode == player_select then
+	if current_mode == splash then
+		draw_splash()
+	elseif current_mode == player_select then
 		draw_player_select()
 	elseif current_mode == game then
 		draw_game()
