@@ -48,7 +48,6 @@ NOTES
 Listen to 'I love techno' a bunch of times.
   
 ## Ending
-- Come up from chord-y breakdown into more hard techno
 - lose the beat a litle
 - long build up
 - drop into bar 1 again

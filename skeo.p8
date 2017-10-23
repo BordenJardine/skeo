@@ -138,8 +138,8 @@ hook_anim = {
 	loop = false,
 	strike_frame = 202
 }
-punch_anims = {jab_anim, hook_anim}
 
+punch_anims = {jab_anim, hook_anim}
 fall_anims = {fall_fwd_anim, fall_bk_anim, end_fall_fwd_anim, end_fall_bk_anim, stand_anim}
 air_fall_anims = {fall_fwd_anim, fall_bk_anim}
 
@@ -163,6 +163,7 @@ actor = {
 	jmp_ticks = 0,
 	max_jmp_time = 8,--max time jump can be held
 	size = 2, -- 2 8*8 sprites
+	size_px = 16,
 	cur_anim = idle_anim,
 	cur_anim_tx = idle_anim.tx,
 	frame = idle_anim.frames[1],
@@ -191,7 +192,7 @@ end
 
 function actor:draw()
 	pal(7, self.clr)
-	local h_px = (self.size * 8) / 2
+	local h_px = (self.size_px) / 2
 	spr(self.frame,
 		self.x - h_px,
 		self.y - h_px,
@@ -202,22 +203,19 @@ function actor:draw()
 end
 
 function actor:update()
-	if not self.downed then
+	if self.downed then
+		self:update_nap()
+	else
 		if not self:check_punch_button() then
 			self:check_run_buttons()
 			self:check_clmb_buttons()
 			self:check_jmp_button()
 		end
-	else
-		self:update_nap()
 	end
-
 	self:move()
 	self:collide()
-
 	self:pick_animation()
 	self:update_punch()
-
 	self:screen_wrap()
 	self:update_tag()
 	self:die_maybe()
@@ -344,7 +342,7 @@ function actor:collide_floor()
 	local landed=false
 	--check for collision at multiple points along the bottom
 	--of the sprite: left, center, and right.
-	local sizep = self.size * 8
+	local sizep = self.size_px
 	for i=-2,2,2 do
 		local tile=scroller:map_get((self.x+i)/8,(self.y+(sizep/2))/8)
 		if fget(tile,0) or (fget(tile,1) and self.dy>=0) then
@@ -401,12 +399,12 @@ end
 function actor:punch(other)
 	-- dont punch yourself, and dont punch anyone too far away
 	if other == self or
-		 distance(self, other) > self.size * 8 or
+		 distance(self, other) > self.size_px or
 		 other.downed then
 		return false
 	end
 	-- local offset = actor.collision_offset
-	local act_size = other.size * 8
+	local act_size = other.size_px
 	local px = self.x + (self.facing == left and 0 or act_size)
 	local py = self.y + self.punch_y_offset
 	local ox = other.x -- + offset (removing to make punching forgiving and useful)
@@ -465,71 +463,84 @@ function actor:die_maybe()
 end
 
 function actor:explode()
-	add(fx, explosion.new(self.x + self.size / 2, self.y, self.clr))
+	add(fx, explosion.new(self.x + self.size_px / 2, self.y, self.clr))
 end
 
 function actor:pick_animation()
-	-- falling todo: wtf is all of this holy shit
-	if self.downed then
-		if not includes(fall_anims, self.cur_anim) then
+	local anim_funcs = {
+		'try_downed_anim',
+		'try_punch_anim',
+		'try_climb_anim',
+		'try_jump_anim',
+		'try_run_anim',
+	}
+	for func in all(anim_funcs) do
+		if(self[func](self)) return
+	end
+end
+
+function actor:try_downed_anim()
+	-- todo: wtf is all of this holy shit
+	if(not self.downed) return false
+	if not includes(fall_anims, self.cur_anim) then
+		local anim = self:falling_fwd() and fall_fwd_anim or fall_bk_anim
+		self:start_anim(anim)
+	else
+		if self.grounded then
+			if self.anim_loops > 0 then
+				local anim = self:falling_fwd() and end_fall_fwd_anim or end_fall_bk_anim
+				self:start_anim(anim)
+			elseif self.cur_anim != stand_anim and (self.nap_cur < self.nap_max / 6) then
+				self:start_anim(stand_anim)
+			end
+		elseif not includes(air_fall_anims, self.cur_anim) then
 			local anim = self:falling_fwd() and fall_fwd_anim or fall_bk_anim
 			self:start_anim(anim)
-		else
-			if self.grounded then
-				if self.anim_loops > 0 then
-					local anim = self:falling_fwd() and end_fall_fwd_anim or end_fall_bk_anim
-					self:start_anim(anim)
-				elseif self.cur_anim != stand_anim and (self.nap_cur < self.nap_max / 6) then
-					self:start_anim(stand_anim)
-				end
-			elseif not includes(air_fall_anims, self.cur_anim) then
-				local anim = self:falling_fwd() and fall_fwd_anim or fall_bk_anim
-				self:start_anim(anim)
-			end
 		end
-		return
 	end
+	return true
+end
 
-	-- punching
-	if self.punching then
-		if not includes(punch_anims, self.cur_anim) then
-			self:start_anim(select(punch_anims))
-		end
-		return
+function actor:try_punch_anim()
+	if(not self.punching) return false
+	if not includes(punch_anims, self.cur_anim) then
+		self:start_anim(select(punch_anims))
 	end
+	return true
+end
 
-	-- climbing
-	if self.climbing then
-		if self.cur_anim != clmb_anim then
-			self:start_anim(clmb_anim)
-		end
-		local speed = max(abs(self.dy), abs(self.dx))
-		self:set_anim_rate(speed, self.max_dx)
-		return
+function actor:try_climb_anim()
+	if(not self.climbing) return false
+	if self.cur_anim != clmb_anim then
+		self:start_anim(clmb_anim)
 	end
+	local speed = max(abs(self.dy), abs(self.dx))
+	self:set_anim_rate(speed, self.max_dx)
+	return true
+end
 
-	-- jumping
-	if not (self.grounded or self.falling or self.cur_anim == jmp_anim) then
-		self:start_anim(jmp_anim)
-		return
-	end
+function actor:try_jump_anim()
+	if(self.grounded or self.falling or self.cur_anim == jmp_anim) return false
+	self:start_anim(jmp_anim)
+	return true
+end
 
-	-- running
-	if self.grounded then
-		local speed_x = abs(self.dx)
-		local idle_speed = 0.1
-		if self.cur_anim != run_anim and speed_x > idle_speed then
-			self:start_anim(run_anim)
-		elseif self.cur_anim != idle_anim and speed_x < idle_speed then
-			-- idle
-			self:start_anim(idle_anim)
-			return
-		end
-		if self.cur_anim == run_anim then
-			self:set_anim_rate(speed_x, self.max_dx)
-			return
-		end
+function actor:try_run_anim()
+	-- running and idling
+	if(not self.grounded) return false
+	local speed_x = abs(self.dx)
+	local idle_speed = 0.1
+	if self.cur_anim != run_anim and speed_x > idle_speed then
+		self:start_anim(run_anim)
+	elseif self.cur_anim != idle_anim and speed_x < idle_speed then
+		-- idle
+		self:start_anim(idle_anim)
+		return true
 	end
+	if self.cur_anim == run_anim then
+		self:set_anim_rate(speed_x, self.max_dx)
+	end
+	return true
 end
 
 function actor:falling_fwd()
@@ -559,7 +570,7 @@ function actor:start_anim(anim)
 end
 
 function actor:screen_wrap()
-	local h_w = (self.size * 8) / 2
+	local h_w = (self.size_px) / 2
 	local l_bound = cam.x - h_w
 	local r_bound = cam.x + 128 + h_w
 	if self.x > r_bound then
@@ -1305,13 +1316,13 @@ function collide_actors(act1, act2)
 	-- dont bother checking for collision with something far away
 	-- dont bother if either of them are already downed
 	if (act1 == act2) or
-		 (distance(act1, act2) > act1.size * 8) or
+		 (distance(act1, act2) > act1.size_px) or
 		 act1.downed or
 		 act2.downed then
 		return
 	end
 	-- printh('d: '..distance(act1,act2)..' x1,x2: '..act1.x..','..act2.x..' y1,y2: '..act1.y..','..act2.y)
-	local act_size = act1.size * 8
+	local act_size = act1.size_px
 	-- the hitbox should be a little smaller on the x axis, because our sprite is twiggy
 	local offset = act1.collision_offset
 	local slim_size = act_size - (offset * 2)
