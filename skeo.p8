@@ -317,8 +317,7 @@ end
 -- force negative if moving left
 function actor:force()
 	local f = (abs(self.dx) + abs(self.dy)) * self.mass
-	f = (self.dx < 0) and -f or f
-	return f
+	return (self.dx < 0) and -f or f
 end
 
 function actor:collide_ladder()
@@ -482,18 +481,18 @@ end
 function actor:try_downed_anim()
 	-- todo: wtf is all of this holy shit
 	if(not self.downed) return false
-	if not includes(fall_anims, self.cur_anim) then
+	if not includes(fall_anims, self.cur_anim) then -- start falling over
 		local anim = self:falling_fwd() and fall_fwd_anim or fall_bk_anim
 		self:start_anim(anim)
 	else
 		if self.grounded then
-			if self.anim_loops > 0 then
+			if self.anim_loops > 0 then -- finish falling over
 				local anim = self:falling_fwd() and end_fall_fwd_anim or end_fall_bk_anim
 				self:start_anim(anim)
-			elseif self.cur_anim != stand_anim and (self.nap_cur < self.nap_max / 6) then
+			elseif self.cur_anim != stand_anim and (self.nap_cur < self.nap_max / 6) then -- stand back up
 				self:start_anim(stand_anim)
 			end
-		elseif not includes(air_fall_anims, self.cur_anim) then
+		elseif not includes(air_fall_anims, self.cur_anim) then -- falling from a height
 			local anim = self:falling_fwd() and fall_fwd_anim or fall_bk_anim
 			self:start_anim(anim)
 		end
@@ -544,7 +543,7 @@ function actor:try_run_anim()
 end
 
 function actor:falling_fwd()
-	return ((self.dx < 0) == self.facing)
+	return self.dx < 0 == self.facing
 end
 
 function actor:set_anim_rate(speed, max_speed)
@@ -628,7 +627,6 @@ function update_fx()
 end
 
 -- fire class
--- fire_life_cycle = { '\146', '\143', '\150', '\149', '\126' }
 fire_chars = {'\150', '\143', '\146'}
 fire_clrs = { 7, 8, 8, 8, 8, 9, 9, 10 }
 fire_level = 0
@@ -747,7 +745,7 @@ bg_doodad = {
 }
 bg_sprites = {72, 74, 76, 104, 106}
 function bg_doodad.init()
-  bg_doodads = {}
+	bg_doodads = {}
 	bg_doodad.timer_max = 150 * cam.paralax_factor --cooldown between making doodads
 	bg_doodad.timer = bg_doodad.timer_max
 
@@ -953,10 +951,6 @@ function scroller:map_get(x, y)
 	end
 end
 
-function scroller:screen_num(cell_y)
-	return flr(cell_y / 32) + 1
-end
-
 function scroller:draw_map()
 	for scrn in all(current_screens) do
 		if mid(scrn.y-128, cam.y, scrn.y+screen_height*8) == cam.y then
@@ -1102,14 +1096,14 @@ function init_player_select()
 end
 
 function update_player_select()
-		if player_select_countdown < 1 then
-			init_game()
-			return
-		end
-		if(#players > 1) player_select_countdown -= 1
-		for i in all({0,1,2,3}) do -- todo: normal for loop here
-			if(btn(4, i) and not includes(players, i)) add(players, i)
-		end
+	if player_select_countdown < 1 then
+		init_game()
+		return
+	end
+	if(#players > 1) player_select_countdown -= 1
+	for i in all({0,1,2,3}) do -- todo: normal for loop here
+		if(btn(4, i) and not includes(players, i)) add(players, i)
+	end
 end
 
 function draw_player_select()
@@ -1210,7 +1204,6 @@ end
 
 function _init()
 	init_splash()
-	-- init_game()
 
 	-- fx
 	-- poke(0x5f43, 1) -- lpf
