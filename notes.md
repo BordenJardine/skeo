@@ -22,10 +22,10 @@ NOTES
 - [x] Vertical Scrolling
 - [x] Level Generation
 - [x] Fire
-- [ ] Tagging
+- [x] Tagging
 - [ ] Powerups
 - [v] Music
-- [ ] Backgrounds and more tiles
+- [v] Backgrounds and more tiles
   - [x] more tiles
   - [x] bg doodads
   - [n] more bg doodads

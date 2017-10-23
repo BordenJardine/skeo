@@ -163,17 +163,6 @@ actor = {
 	jmp_ticks = 0,
 	max_jmp_time = 8,--max time jump can be held
 	size = 2, -- 2 8*8 sprites
-	run_anim = run_anim,
-	jmp_anim = jmp_anim,
-	idle_anim = idle_anim,
-	clmb_anim = clmb_anim,
-	fall_bk_anim = fall_bk_anim,
-	fall_fwd_anim = fall_fwd_anim,
-	end_fall_bk_anim = end_fall_bk_anim,
-	end_fall_fwd_anim = end_fall_fwd_anim,
-	jab_anim = jab_anim,
-	hook_anim = hook_anim,
-	stand_anim = stand_anim,
 	cur_anim = idle_anim,
 	cur_anim_tx = idle_anim.tx,
 	frame = idle_anim.frames[1],
@@ -483,18 +472,18 @@ function actor:pick_animation()
 	-- falling todo: wtf is all of this holy shit
 	if self.downed then
 		if not includes(fall_anims, self.cur_anim) then
-			local anim = self:falling_fwd() and self.fall_fwd_anim or self.fall_bk_anim
+			local anim = self:falling_fwd() and fall_fwd_anim or fall_bk_anim
 			self:start_anim(anim)
 		else
 			if self.grounded then
 				if self.anim_loops > 0 then
-					local anim = self:falling_fwd() and self.end_fall_fwd_anim or self.end_fall_bk_anim
+					local anim = self:falling_fwd() and end_fall_fwd_anim or end_fall_bk_anim
 					self:start_anim(anim)
-				elseif self.cur_anim != self.stand_anim and (self.nap_cur < self.nap_max / 6) then
-					self:start_anim(self.stand_anim)
+				elseif self.cur_anim != stand_anim and (self.nap_cur < self.nap_max / 6) then
+					self:start_anim(stand_anim)
 				end
 			elseif not includes(air_fall_anims, self.cur_anim) then
-				local anim = self:falling_fwd() and self.fall_fwd_anim or self.fall_bk_anim
+				local anim = self:falling_fwd() and fall_fwd_anim or fall_bk_anim
 				self:start_anim(anim)
 			end
 		end
@@ -511,8 +500,8 @@ function actor:pick_animation()
 
 	-- climbing
 	if self.climbing then
-		if self.cur_anim != self.clmb_anim then
-			self:start_anim(self.clmb_anim)
+		if self.cur_anim != clmb_anim then
+			self:start_anim(clmb_anim)
 		end
 		local speed = max(abs(self.dy), abs(self.dx))
 		self:set_anim_rate(speed, self.max_dx)
@@ -520,8 +509,8 @@ function actor:pick_animation()
 	end
 
 	-- jumping
-	if not (self.grounded or self.falling or self.cur_anim == self.jmp_anim) then
-		self:start_anim(self.jmp_anim)
+	if not (self.grounded or self.falling or self.cur_anim == jmp_anim) then
+		self:start_anim(jmp_anim)
 		return
 	end
 
@@ -529,14 +518,14 @@ function actor:pick_animation()
 	if self.grounded then
 		local speed_x = abs(self.dx)
 		local idle_speed = 0.1
-		if self.cur_anim != self.run_anim and speed_x > idle_speed then
-			self:start_anim(self.run_anim)
-		elseif self.cur_anim != self.idle_anim and speed_x < idle_speed then
+		if self.cur_anim != run_anim and speed_x > idle_speed then
+			self:start_anim(run_anim)
+		elseif self.cur_anim != idle_anim and speed_x < idle_speed then
 			-- idle
-			self:start_anim(self.idle_anim)
+			self:start_anim(idle_anim)
 			return
 		end
-		if self.cur_anim == self.run_anim then
+		if self.cur_anim == run_anim then
 			self:set_anim_rate(speed_x, self.max_dx)
 			return
 		end
