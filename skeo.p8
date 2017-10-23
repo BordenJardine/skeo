@@ -686,6 +686,7 @@ end
 -- word class
 nice_words = {
 	'nice!',
+	'rude',
 	'murderer!',
 	'\135',
 	'toasty!'
@@ -1163,7 +1164,6 @@ function draw_conclusion()
 		draw_word('win',72,56, 7, clr)
 	else
 		draw_word('losers',8,56, 0, clr)
-		-- draw_word('wins',26,70, 0, clr)
 	end
 end
 
@@ -1178,6 +1178,9 @@ splash_words = {
 splash_word_time = 10
 splash_timer = splash_word_time
 splash_word_index = 1
+function init_splash()
+end
+
 function update_splash()
 	splash_timer -= 1
 	if splash_timer < 1 then
@@ -1191,8 +1194,9 @@ end
 
 function draw_splash()
 		cls()
-		printc(splash_words[splash_word_index], 64,44,7,0,0)
-		draw_word('borden',8,56, 7, 5)
+		local clr = splash_timer % 2 == 0 and 7 or 5
+		printc(splash_words[splash_word_index], 64,44,clr,0,0)
+		draw_word('borden',8,56, clr, 0)
 end
 
 
@@ -1204,6 +1208,7 @@ end
 
 
 function _init()
+	init_splash()
 	-- init_game()
 
 	-- fx
