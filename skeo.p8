@@ -607,11 +607,10 @@ end
 
 
 -- fire class
-fire_chars = {'\150', '\143', '\146'}
+fire_chars = {'\146', '\150', '\143', '\126', '\149' }
 fire_clrs = { 7, 8, 8, 8, 8, 9, 9, 10 }
-fire_level = 0
-fire_life_cycle = {}
 fire_speed = 1
+fire_started = false
 fire = {
 	x = 0,
 	y = 0,
@@ -627,24 +626,13 @@ function fire.new(x, y)
 	return f
 end
 
-function fire.init()
-	fire_level = 0
-	fire_life_cycle = { '\126', '\149' }
-end
-
-function fire.level_up()
-	if(fire_level > #fire_chars) return
-	fire_life_cycle = unshift(fire_life_cycle, fire_chars[fire_level])
-	fire_level += 1
-end
-
 function fire:update()
-	if self.tx == #fire_life_cycle then
+	if self.tx == #fire_chars then
 		del(fx, self)
 		return
 	end
 	self.clr = select(fire_clrs)
-	if self.tx == #fire_life_cycle - 1 then
+	if self.tx == #fire_chars - 1 then
 		self.clr = 5 -- smoke
 	end
 	if rnd(3) > 2 then
@@ -656,7 +644,7 @@ function fire:update()
 end
 
 function fire:draw()
-	char = fire_life_cycle[self.tx]
+	char = fire_chars[self.tx]
 	print(char,self.x,self.y,self.clr)
 end
 
@@ -846,9 +834,9 @@ function cam:update_scroll()
 	self.cooldown -= 1
 	if self.cooldown < 1 then
 		self.cooldown = scroll_cooldown
-		fire.level_up()
 		if not self.scrolling then
 			self.scrolling = true
+      fire_started = true
 		-- elseif not dev and self.max_scroll_tx > 1 then  todo: think about scrolling speed
 		-- 	self.max_scroll_tx = max(self.max_scroll_tx / 2, 1)
 		end
@@ -955,14 +943,13 @@ end
 
 -- fx stuff
 function init_fx()
-	fire.init()
 	bg_doodad.init()
 	ghoster.init()
 	fx = {}
 end
 
 function update_fx()
-	if fire_level > 0 then
+	if fire_started then
 		for i=1,15 do
 			add(fx, fire.new(cam.x, cam.y+128))
 		end
@@ -1151,7 +1138,7 @@ end
 conclusion_timeout = 0
 function init_conclusion()
 	current_mode = conclusion
-	conclusion_timeout = 10 * 30 -- ten seconds
+	conclusion_timeout = 5 * 30 -- ten seconds
 end
 
 function update_conclusion()
@@ -1221,7 +1208,8 @@ function _init()
 	-- fx
 	-- poke(0x5f43, 1) -- lpf
 	-- poke(0x5f42, 2) -- distortion
-	poke(0x5f41, 12) -- reverb
+	-- poke(0x5f41, 12) -- reverb
+	poke(0x5f41, 2) -- reverb
 	menuitem(2, "toggle music", toggle_music)
 end
 
