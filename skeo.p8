@@ -4,7 +4,7 @@ __lua__
 
 printh("\n\n-------\n-skeo-\n-------")
 
-dev = false
+dev = true
 
 -- constants
 
@@ -18,9 +18,8 @@ start_cell_x = 29
 start_cell_y = 16
 start_x = start_cell_x * 8 -- where to draw initial cam
 start_y = start_cell_y * 8
-p2_strt_x = start_x + 8 * 13
 
-starting_scroll_speed = 2
+starting_scroll_speed = 3
 -- scroll_cooldown = 450 -- 15 seconds
 scroll_cooldown = 150 -- 15 seconds
 
@@ -610,7 +609,7 @@ end
 fire_chars = {'\146', '\150', '\143', '\126', '\149' }
 fire_clrs = { 7, 8, 8, 8, 8, 9, 9, 10 }
 fire_speed = 1
-fire_started = false
+fire_started = dev and true or false
 fire = {
 	x = 0,
 	y = 0,
@@ -798,30 +797,70 @@ function explosion:remove()
 end
 
 -- powerups
-power_up_timeout = 30 * 15 -- 15 seconds
+--power_up_timeout = 30 * 15 -- 15 seconds
+power_up_timeout = 30 * 5 -- 15 seconds
+power_up_counter = power_up_timeout
 power_up_char = '\136'
 power_up_clr_neut = 5
-power_up_clrs_alpha = { 2, 8, 14 }
-power_up_clrs_beta = { 1, 13, 12 }
+power_up_clrs = {
+	alpha = { 2, 8, 14 },
+	beta = { 1, 13, 12 }
+}
 power_up = {
-	clr_index = 0,
+	type = 'alpha',
+	active = false,
+	clr_index = 1,
 }
 function power_up.create()
  -- pick a spot right above the camera
  -- if there isn't already something there,
  -- create a new power-up
+	local tile_x = flr((cam.x + rnd(120)) / 8)
+	local tile_y = flr((cam.y - 8) / 8)
+	local tile = scroller:map_get(tile_x, tile_y)
+	if(tile != 0) return
+	add(power_ups, power_up.new(tile_x * 8, tile_y * 8))
+end
+
+function power_up.new(x, y)
+	local p = setmetatable({}, { __index = power_up }) 
+	p.x = x
+	p.y = y
+	p.type = (rnd(2) > 1) and 'alpha' or 'beta'
+	return p
 end
 
 function power_up.update_all()
-end
+	power_up_counter -= 1
+	if power_up_counter < 1 then
+		power_up.create()
+		power_up_counter = power_up_timeout
+	end
 
-function power_up:init()
+	for p in all(power_ups) do
+		p:update()
+	end
 end
 
 function power_up:update()
+	if self.active == false and self.y > cam.y + 64 then
+		self.active = true
+	end
+	if self.y > cam.y + 136 then
+		self:remove()
+	end
+	self.clr_index += 1
+	printh(#power_up_clrs[self.type])
+	if (self.clr_index > #power_up_clrs[self.type]) self.clr_index = 1
 end
 
 function power_up:draw()
+	clr = self.active and power_up_clrs[self.type][self.clr_index] or power_up_clr_neut
+	print(power_up_char, self.x, self.y, clr)
+end
+
+function power_up:remove()
+	del(power_ups, self)
 end
 
 
@@ -853,8 +892,8 @@ function cam:update_scroll()
 		self.cooldown = scroll_cooldown
 		if not self.scrolling then
 			self.scrolling = true
-      fire_started = true
-		-- elseif not dev and self.max_scroll_tx > 1 then  todo: think about scrolling speed
+			fire_started = true
+		-- elseif not dev and self.max_scroll_tx > 1 then	todo: think about scrolling speed
 		-- 	self.max_scroll_tx = max(self.max_scroll_tx / 2, 1)
 		end
 	end
@@ -961,8 +1000,8 @@ end
 -- fx stuff
 function init_fx()
 	bg_doodad.init()
-	ghoster.init()
 	fx = {}
+	power_ups = {}
 end
 
 function update_fx()
@@ -977,7 +1016,7 @@ function update_fx()
 	end
 
 	bg_doodad.update_all()
-  ghoster.update_all()
+	power_up.update_all()
 end
 
 
@@ -1058,6 +1097,9 @@ function draw_game()
 		d:draw()
 	end
 	scroller:draw_map()
+	for p in all(power_ups) do
+		p:draw()
+	end
 	for a in all(actors) do
 		a:draw()
 		a:advance_frame()
