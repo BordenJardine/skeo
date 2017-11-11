@@ -414,7 +414,6 @@ function actor:apply_force(force, bonus)
 	if (f < self:stats().fall_threshold) then return false end
 	-- innertia
 	local m = self:stats().mass * (force < 0 and 1 or -1)
-	printh(force)
 	self.dx += force + m
 	self.downed = true
 	self.climbing = false
@@ -459,7 +458,6 @@ function actor:punch(other)
 	local oh = act_size
 	if intersects_point_box(px,py,ox,oy,ow,oh) then
 		local force = self:stats().punch_force * (self.facing == left and -1 or 1)
-		printh('punch force '..self:stats().punch_force)
 		local felled = other:apply_force(force, 4)
 		if felled then -- maybe we'll get a life out of this!
 			other.tag = {
@@ -1453,7 +1451,6 @@ function collide_actors(act1, act2)
 		act2.downed then
 		return
 	end
-	-- printh('d: '..distance(act1,act2)..' x1,x2: '..act1.x..','..act2.x..' y1,y2: '..act1.y..','..act2.y)
 	local act_size = act1.size_px
 	-- the hitbox should be a little smaller on the x axis, because our sprite is twiggy
 	local offset = act1.collision_offset
