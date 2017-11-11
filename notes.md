@@ -2,12 +2,13 @@ NOTES
 =====
 
 # THE LAST DAY
-- Test Powerups
-- Speed up scroller after a while (1 minute?)
-- Clean Up Code
-- 5 Levels
-- Test / Tweak Levels
-- Song Tweaks (see below)
+- [X] Speed up scroller after a while (1 minute?)
+- [ ] Clean Up Code
+- [ ] 5 Levels
+- [ ] Test / Tweak Powerups
+- [ ] Test / Tweak Levels
+- [ ] Song Tweaks (see below)
+- [ ] RM BG Doodads?
 
 # BUGS ETC
 - holding down punch button
