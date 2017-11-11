@@ -49,21 +49,27 @@ starting_lives = 5
 player_info = {
 	{
 		player = 0,
+		power_level = 1, --TODO stahp
+		clrs = {5, 6, 7},
 		clr = 6,
 		x = start_x + 8 * 1,
 		lives = starting_lives
 	}, {
 		player = 1,
+		power_level = 3, --TODO stahp
+		clrs = {2, 8, 14},
 		clr = 8,
 		x = start_x + 8 * 13,
 		lives = starting_lives
 	}, {
 		player = 2,
+		clrs = {1, 12, 13},
 		clr = 12,
 		x = start_x + 8 * 4,
 		lives = starting_lives
 	},{
 		player = 3,
+		clrs = {5, 3, 11},
 		clr = 3,
 		x = start_x + 8 * 9,
 		lives = starting_lives
@@ -146,19 +152,14 @@ air_fall_anims = {fall_fwd_anim, fall_bk_anim}
 -- actor 'class'
 actor = {
 	player = 0,
-	clr = 7,
+	off_clr = false,
 	x = start_x + 8,
 	y = start_y + (14 * 8),
+	power_level = 2,
 	dx = 0, -- current speed
 	dy = 0,
-	max_dx = 4,--max x speed
-	max_dy = 5,--max y speed
-	max_clmb_dx=0.5,--max climb speed
-	max_clmb_dy=2,--max climb speed
-	acc = 0.5,--acceleration
 	dcc = 0.9,--decceleration
 	clmb_dcc = 0.8,--decceleration
-	jmp_speed = -2.5,
 	jmp_ended = false,
 	jmp_ticks = 0,
 	max_jmp_time = 8,--max time jump can be held
@@ -175,23 +176,62 @@ actor = {
 	on_ladder = false,
 	climbing = false,
 	downed = false,
-	fall_threshold = 4,
-	mass = 1, -- for caclulating force
 	nap_cur = 0, -- time spent downed after collision
 	nap_max = 60,
 	facing = right,
 	collision_offset = 4,
 	punch_y_offset = 4, -- your fist is in front of you
-	punch_force = 1,
 	tag = nil
+}
+stats = {}
+
+stats[1] = {
+	max_dx = 3,--max x speed
+	max_dy = 4,--max y speed
+	max_clmb_dx=0.4,--max climb speed
+	max_clmb_dy=1.7,--max climb speed
+	acc = 0.4,--acceleration
+	jmp_speed = -2.1,
+	fall_threshold = 6,
+	mass = 2, -- for caclulating force
+	punch_force = 4,
+}
+
+stats[2] = {
+	max_dx = 4,--max x speed
+	max_dy = 5,--max y speed
+	max_clmb_dx=0.5,--max climb speed
+	max_clmb_dy=2,--max climb speed
+	acc = 0.5,--acceleration
+	jmp_speed = -2.5,
+	fall_threshold = 4,
+	mass = 1, -- for caclulating force
+	punch_force = 1,
+}
+
+stats[3] = {
+	max_dx = 5,--max x speed
+	max_dy = 6,--max y speed
+	max_clmb_dx=0.7,--max climb speed
+	max_clmb_dy=3,--max climb speed
+	acc = 0.7,--acceleration
+	jmp_speed = -3.0,
+	fall_threshold = 3,
+	mass = 0.5, -- for caclulating force
+	punch_force = 0.7,
 }
 function actor.new(settings)
 	local dude = setmetatable((settings or {}), { __index = actor }) 
 	return dude
 end
 
+function actor:stats()
+	return stats[self.power_level]
+end
+
 function actor:draw()
-	pal(7, self.clr)
+	local clr = self.off_clr and self.clrs[self.power_level] or self.clr
+	pal(7, clr)
 	local h_px = (self.size_px) / 2
 	spr(self.frame,
 		self.x - h_px,
@@ -219,6 +259,7 @@ function actor:update()
 	self:screen_wrap()
 	self:update_tag()
 	self:die_maybe()
+	self.off_clr = not self.off_clr
 end
 
 function actor:check_punch_button()
@@ -234,10 +275,10 @@ function actor:check_run_buttons()
 	if(bl and br) return
 	if bl then
 		self.facing = left
-		self.dx -= self.acc
+		self.dx -= self:stats().acc
 	elseif br then
 		self.facing = right
-		self.dx += self.acc
+		self.dx += self:stats().acc
 	end
 end
 
@@ -259,10 +300,10 @@ function actor:check_clmb_buttons()
 	if(bu and bd) return
 	if bu then
 		self.facing = left -- todo: do we need these facings?
-		self.dy -= self.acc
+		self.dy -= self:stats().acc
 	elseif bd then
 		self.facing = right
-		self.dy += self.acc
+		self.dy += self:stats().acc
 	end
 end
 
@@ -281,7 +322,7 @@ function actor:check_jmp_button()
 
 	if(self.jmp_ticks == 0) sfx(sfx_jmp)
 	self.jmp_ticks += 1
-	if(self.jmp_ticks < self.max_jmp_time) self.dy=self.jmp_speed -- keep going up while held
+	if(self.jmp_ticks < self.max_jmp_time) self.dy=self:stats().jmp_speed -- keep going up while held
 end
 
 function actor:move()
@@ -290,16 +331,16 @@ function actor:move()
 			self.dx *= self.clmb_dcc
 		-- speed limit
 		self.dx *= self.dcc
-		self.dy = mid(-self.max_clmb_dy,self.dy,self.max_clmb_dy)
-		self.dx = mid(-self.max_clmb_dx,self.dx,self.max_clmb_dx)
+		self.dy = mid(-self:stats().max_clmb_dy,self.dy,self:stats().max_clmb_dy)
+		self.dx = mid(-self:stats().max_clmb_dx,self.dx,self:stats().max_clmb_dx)
 	else
 		--decel
 		self.dx *= self.dcc
 		-- apply gravity
 		self.dy += grav
 		-- speed limit
-		self.dx = mid(-self.max_dx,self.dx,self.max_dx)
-		self.dy = mid(-self.max_dy,self.dy,self.max_dy)
+		self.dx = mid(-self:stats().max_dx,self.dx,self:stats().max_dx)
+		self.dy = mid(-self:stats().max_dy,self.dy,self:stats().max_dy)
 	end
 
 	-- move
@@ -316,7 +357,7 @@ end
 -- speed x + speed y
 -- force negative if moving left
 function actor:force()
-	local f = (abs(self.dx) + abs(self.dy)) * self.mass
+	local f = (abs(self.dx) + abs(self.dy)) * self:stats().mass
 	return (self.dx < 0) and -f or f
 end
 
@@ -365,9 +406,10 @@ end
 function actor:apply_force(force, bonus)
 	bonus = bonus or 0
 	local f = abs(force - self:force()) + bonus
-	if (f < self.fall_threshold) then return false end
+	if (f < self:stats().fall_threshold) then return false end
 	-- innertia
-	local m = (force < 0) and -self.mass or self.mass
+	local m = self:stats().mass * (force < 0 and -1 or 1)
+	printh(force)
 	self.dx += force + m
 	self.downed = true
 	self.climbing = false
@@ -411,7 +453,8 @@ function actor:punch(other)
 	local ow = act_size -- - offset
 	local oh = act_size
 	if intersects_point_box(px,py,ox,oy,ow,oh) then
-		local force = self.punch_force * (self.facing == left and -1 or 1)
+		local force = self:stats().punch_force * (self.facing == left and -1 or 1)
+		printh('punch force '..self:stats().punch_force)
 		local felled = other:apply_force(force, 4)
 		if felled then -- maybe we'll get a life out of this!
 			other.tag = {
@@ -514,7 +557,7 @@ function actor:try_climb_anim()
 		self:start_anim(clmb_anim)
 	end
 	local speed = max(abs(self.dy), abs(self.dx))
-	self:set_anim_rate(speed, self.max_dx)
+	self:set_anim_rate(speed, self:stats().max_dx)
 	return true
 end
 
@@ -537,7 +580,7 @@ function actor:try_run_anim()
 		return true
 	end
 	if self.cur_anim == run_anim then
-		self:set_anim_rate(speed_x, self.max_dx)
+		self:set_anim_rate(speed_x, self:stats().max_dx)
 	end
 	return true
 end
@@ -850,7 +893,7 @@ function power_up:update()
 		self:remove()
 	end
 	self.clr_index += 1
-	printh(#power_up_clrs[self.type])
+	-- printh(#power_up_clrs[self.type])
 	if (self.clr_index > #power_up_clrs[self.type]) self.clr_index = 1
 end
 
@@ -871,7 +914,8 @@ function cam:init()
 	self.paralax_factor = 6 -- scrolling frames betweens moving the bg
 	self.x = start_x
 	self.y = start_y
-	self.scrolling = dev
+	-- self.scrolling = dev TODO
+	self.scrolling = false
 	self.max_scroll_tx = starting_scroll_speed
 	self.scroll_tx = starting_scroll_speed
 	self.bg_cooldown = self.paralax_factor
@@ -891,7 +935,7 @@ function cam:update_scroll()
 	if self.cooldown < 1 then
 		self.cooldown = scroll_cooldown
 		if not self.scrolling then
-			self.scrolling = true
+			self.scrolling = false
 			fire_started = true
 		-- elseif not dev and self.max_scroll_tx > 1 then	todo: think about scrolling speed
 		-- 	self.max_scroll_tx = max(self.max_scroll_tx / 2, 1)
@@ -1369,7 +1413,7 @@ function collide_actors(act1, act2)
 	-- dont bother checking for collision with something far away
 	-- dont bother if either of them are already downed
 	if (act1 == act2) or
-		 (distance(act1, act2) > act1.size_px) or
+		 -- (distance(act1, act2) > act1.size_px) or
 		 act1.downed or
 		 act2.downed then
 		return
