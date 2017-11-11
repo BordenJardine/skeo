@@ -918,8 +918,16 @@ function power_up:collide_with_actor(actor)
 	)
 	if(not collide) return false
 	actor:change_power_level(self.type == 'alpha' and -1 or 1)
-	printh(self.type)
+	local word_clrs = power_up_clrs[self.type]
+	add(fx, word_effect.new({
+		str = self.type,
+		clr = word_clrs[2],
+		clr_high = word_clrs[3],
+		x = self.x + self.size / 2,
+		y = self.y
+	}))
 	self:remove()
+
 end
 
 function power_up:draw()
