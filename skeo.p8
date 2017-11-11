@@ -4,7 +4,7 @@ __lua__
 
 printh("\n\n-------\n-skeo-\n-------")
 
-dev = true
+dev = false
 
 -- constants
 
@@ -206,7 +206,7 @@ stats[2] = {
 	jmp_speed = -2.5,
 	fall_threshold = 4,
 	mass = 1, -- for caclulating force
-	punch_force = 1,
+	punch_force = 2.0,
 }
 
 -- beta
@@ -967,7 +967,7 @@ function cam:update_scroll()
 	if self.cooldown < 1 then
 		self.cooldown = scroll_cooldown
 		if not self.scrolling then
-			self.scrolling = false
+			self.scrolling = true
 			fire_started = true
 		-- elseif not dev and self.max_scroll_tx > 1 then	todo: think about scrolling speed
 		-- 	self.max_scroll_tx = max(self.max_scroll_tx / 2, 1)
@@ -1293,8 +1293,7 @@ function draw_conclusion()
 	if winner then
 		winner += 1
 		clr = player_info[winner].clr
-		draw_word('you',4,56, 7, clr)
-		draw_word('win',72,56, 7, clr)
+		draw_word('win',36,56, 7, clr)
 	else
 		draw_word('losers',8,56, 0, clr)
 	end
