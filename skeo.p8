@@ -12,16 +12,15 @@ grav = 0.3
 left = true -- these are for facing
 right = false
 
-tag_length = 3 * 30 -- seconds after a punch a player should get credit for a kill
-
 start_cell_x = 29
 start_cell_y = 16
 start_x = start_cell_x * 8 -- where to draw initial cam
 start_y = start_cell_y * 8
 
 starting_scroll_speed = 3
--- scroll_cooldown = 450 -- 15 seconds
-scroll_cooldown = 150 -- 15 seconds
+scroll_speed_up_cooldown = 1800 -- 1 min
+scroll_cooldown = 450 -- 15 seconds
+-- scroll_cooldown = 150 -- 15 seconds
 
 --screen stuff
 screen_height = 32 -- cells
@@ -39,12 +38,14 @@ snd_bmp = 5
 round_over = false
 default_rot = 30
 round_over_timeout = 30 -- give it a sec to settle down
+tag_length = 3 * 30 -- seconds after a punch a player should get credit for a kill
+starting_lives = 5
 players = {} -- players in the game
 actors = {} -- living players
 fx = {} -- particles and splosions n stuff
 bg_doodads = {}
 power_ups = {}
-starting_lives = 5
+
 
 player_info = {
 	{
@@ -914,7 +915,6 @@ function power_up:collide_with_actor(actor)
 		self.x, self.y,
 		self.size, 6
 	)
-	printh('collide '..(collide and 't' or 'f'))
 	if(not collide) return false
 	actor:change_power_level(self.type == 'alpha' and -1 or 1)
 	local word_clrs = power_up_clrs[self.type]
@@ -950,7 +950,7 @@ function cam:init()
 	self.max_scroll_tx = starting_scroll_speed
 	self.scroll_tx = starting_scroll_speed
 	self.bg_cooldown = self.paralax_factor
-	self.cooldown = scroll_cooldown -- change scrolling speed every so often
+	self.cooldown = scroll_speed_up_cooldown -- change scrolling speed every so often
 	self.shake_remaining=0
 	self.shake_force = 0
 end
@@ -963,14 +963,14 @@ end
 function cam:update_scroll()
 	-- check scroll speed
 	self.cooldown -= 1
-	if self.cooldown < 1 then
-		self.cooldown = scroll_cooldown
+	if self.cooldown < scroll_speed_up_cooldown - scroll_cooldown then
 		if not self.scrolling then
 			self.scrolling = true
-			-- fire_started = tru TODO
-			fire_started = false
-		-- elseif not dev and self.max_scroll_tx > 1 then	todo: think about scrolling speed
-		-- 	self.max_scroll_tx = max(self.max_scroll_tx / 2, 1)
+			fire_started = true
+		end
+		if self.cooldown < 1 then
+			self.cooldown = scroll_speed_up_cooldown
+			self.max_scroll_tx = max(self.max_scroll_tx - 1, 1)
 		end
 	end
 

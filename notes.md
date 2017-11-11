@@ -1,11 +1,14 @@
 NOTES
 =====
 
-- RM ghoster stuff
-- Make fire more apparent from the get-go
-- Slower scrolling
+# THE LAST DAY
+- Test Powerups
+- Speed up scroller after a while (1 minute?)
+- Clean Up Code
+- 5 Levels
+- Test / Tweak Levels
+- Song Tweaks (see below)
 
-  
 # BUGS ETC
 - holding down punch button
 - better 'stand up' animation
@@ -15,7 +18,7 @@ NOTES
 - make 5 levels
 
 # IF THERE IS ROOM
-- effect on victory
+- goofy effect on victory
 
 #ARCS
 - [x] Movement
@@ -25,7 +28,7 @@ NOTES
 - [x] Level Generation
 - [x] Fire
 - [x] Tagging
-- [ ] Powerups
+- [x] Powerups
 - [x?] Music
 - [x] Backgrounds and more tiles
   - [x] more tiles
