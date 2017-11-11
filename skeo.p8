@@ -185,18 +185,20 @@ actor = {
 }
 stats = {}
 
+-- alpha
 stats[1] = {
 	max_dx = 3,--max x speed
 	max_dy = 4,--max y speed
 	max_clmb_dx=0.4,--max climb speed
 	max_clmb_dy=1.7,--max climb speed
 	acc = 0.4,--acceleration
-	jmp_speed = -2.1,
+	jmp_speed = -2.0,
 	fall_threshold = 6,
 	mass = 2, -- for caclulating force
 	punch_force = 4,
 }
 
+-- normie
 stats[2] = {
 	max_dx = 4,--max x speed
 	max_dy = 5,--max y speed
@@ -209,15 +211,16 @@ stats[2] = {
 	punch_force = 1,
 }
 
+-- beta
 stats[3] = {
 	max_dx = 5,--max x speed
 	max_dy = 6,--max y speed
 	max_clmb_dx=0.7,--max climb speed
 	max_clmb_dy=3,--max climb speed
 	acc = 0.7,--acceleration
-	jmp_speed = -3.0,
+	jmp_speed = -3.1,
 	fall_threshold = 3,
-	mass = 0.5, -- for caclulating force
+	mass = 0.8, -- for caclulating force
 	punch_force = 0.7,
 }
 function actor.new(settings)
@@ -649,7 +652,7 @@ end
 
 
 -- fire class
-fire_chars = {'\146', '\150', '\143', '\126', '\149' }
+fire_chars = {'\146', '\143', '\143', '\150', '\126'}
 fire_clrs = { 7, 8, 8, 8, 8, 9, 9, 10 }
 fire_speed = 1
 fire_started = dev and true or false
@@ -669,14 +672,11 @@ function fire.new(x, y)
 end
 
 function fire:update()
-	if self.tx == #fire_chars then
+	if self.tx == #fire_chars or rnd(6) > 5 then
 		del(fx, self)
 		return
 	end
 	self.clr = select(fire_clrs)
-	if self.tx == #fire_chars - 1 then
-		self.clr = 5 -- smoke
-	end
 	if rnd(3) > 2 then
 		self.dir = not self.dir
 	end
@@ -1048,15 +1048,19 @@ function init_fx()
 	power_ups = {}
 end
 
+update_fire = true
 function update_fx()
 	if fire_started then
-		for i=1,15 do
+		for i=1,10 do
 			add(fx, fire.new(cam.x, cam.y+128))
 		end
 	end
 
-	for f in all(fx) do
-		f:update()
+	update_fire = not update_fire
+	if update_fire then
+		for f in all(fx) do
+			f:update()
+		end
 	end
 
 	bg_doodad.update_all()
@@ -1413,9 +1417,9 @@ function collide_actors(act1, act2)
 	-- dont bother checking for collision with something far away
 	-- dont bother if either of them are already downed
 	if (act1 == act2) or
-		 -- (distance(act1, act2) > act1.size_px) or
-		 act1.downed or
-		 act2.downed then
+		(distance(act1, act2) > act1.size_px) or
+		act1.downed or
+		act2.downed then
 		return
 	end
 	-- printh('d: '..distance(act1,act2)..' x1,x2: '..act1.x..','..act2.x..' y1,y2: '..act1.y..','..act2.y)
