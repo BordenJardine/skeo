@@ -411,7 +411,7 @@ function actor:apply_force(force, bonus)
 	local f = abs(force - self:force()) + bonus
 	if (f < self:stats().fall_threshold) then return false end
 	-- innertia
-	local m = self:stats().mass * (force < 0 and -1 or 1)
+	local m = self:stats().mass * (force < 0 and 1 or -1)
 	printh(force)
 	self.dx += force + m
 	self.downed = true
