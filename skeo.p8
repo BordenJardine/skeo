@@ -4,7 +4,7 @@ __lua__
 
 printh("\n\n-------\n-skeo-\n-------")
 
-dev = false
+dev = true
 
 -- constants
 
@@ -239,8 +239,8 @@ function actor:draw()
 	pal(7, clr)
 	local h_px = (self.size_px) / 2
 	spr(self.frame,
-		self.x - h_px,
-		self.y - h_px,
+		self.x - h_px, -- I really shouldn't have subtracted this, but it's too late now
+		self.y - h_px, -- made collision messy :(. Cleanup for later meebee
 		self.size,self.size,
 		self.facing,
 		false)
@@ -444,7 +444,6 @@ end
 function actor:punch(other)
 	-- dont punch yourself, and dont punch anyone too far away
 	if other == self or
-		 distance(self, other) > self.size_px or
 		 other.downed then
 		return false
 	end
@@ -655,7 +654,7 @@ end
 fire_chars = {'\146', '\143', '\143', '\150', '\126'}
 fire_clrs = { 7, 8, 8, 8, 8, 9, 9, 10 }
 fire_speed = 1
-fire_started = dev and true or false
+fire_started = false
 fire = {
 	x = 0,
 	y = 0,
@@ -894,26 +893,28 @@ function power_up:update()
 	if self.active == false and self.y > cam.y + 64 then
 		self.active = true
 	end
+	if(not self.active) return
+
 	self.clr_index += 1
 	if (self.clr_index > #power_up_clrs[self.type]) self.clr_index = 1
 
-	if self.active then
-		for a in all(actors) do 
-			self:collide_with_actor(a)
-		end
+	for a in all(actors) do
+		self:collide_with_actor(a)
 	end
 end
 
 function power_up:collide_with_actor(actor)
 	local offset = actor.collision_offset
 	local act_size = actor.size_px
+	local h_s = act_size / 2 -- have to subtract this cause i'm dumb and made x/y the center of the actor
 	local slim_size = act_size - (offset * 2)
 	local collide = intersects_box_box(
-		actor.x + offset, actor.y,
+		actor.x + offset - h_s, actor.y - h_s,
 		slim_size, act_size,
 		self.x, self.y,
-		self.size, self.size
+		self.size, 6
 	)
+	printh('collide '..(collide and 't' or 'f'))
 	if(not collide) return false
 	actor:change_power_level(self.type == 'alpha' and -1 or 1)
 	local word_clrs = power_up_clrs[self.type]
@@ -945,7 +946,7 @@ function cam:init()
 	self.paralax_factor = 6 -- scrolling frames betweens moving the bg
 	self.x = start_x
 	self.y = start_y
-	self.scrolling = dev
+	self.scrolling = false
 	self.max_scroll_tx = starting_scroll_speed
 	self.scroll_tx = starting_scroll_speed
 	self.bg_cooldown = self.paralax_factor
@@ -966,7 +967,8 @@ function cam:update_scroll()
 		self.cooldown = scroll_cooldown
 		if not self.scrolling then
 			self.scrolling = true
-			fire_started = true
+			-- fire_started = tru TODO
+			fire_started = false
 		-- elseif not dev and self.max_scroll_tx > 1 then	todo: think about scrolling speed
 		-- 	self.max_scroll_tx = max(self.max_scroll_tx / 2, 1)
 		end
@@ -1291,9 +1293,9 @@ function draw_conclusion()
 	if winner then
 		winner += 1
 		clr = player_info[winner].clr
-		draw_word('win',36,56, 7, clr)
+		draw_word('win', 36, 56, 7, clr)
 	else
-		draw_word('losers',8,56, 0, clr)
+		draw_word('losers', 8, 56, 0, clr)
 	end
 end
 
@@ -1446,19 +1448,19 @@ function collide_actors(act1, act2)
 	-- dont bother checking for collision with something far away
 	-- dont bother if either of them are already downed
 	if (act1 == act2) or
-		(distance(act1, act2) > act1.size_px) or
 		act1.downed or
 		act2.downed then
 		return
 	end
 	local act_size = act1.size_px
+	local h_s = act_size / 2 -- have to subtract this cause i'm dumb and made x/y the center of the actor
 	-- the hitbox should be a little smaller on the x axis, because our sprite is twiggy
 	local offset = act1.collision_offset
 	local slim_size = act_size - (offset * 2)
 	local collide = intersects_box_box(
-		act1.x + offset, act1.y,
+		act1.x + offset - h_s, act1.y - h_s,
 		slim_size, act_size,
-		act2.x + offset, act2.y,
+		act2.x + offset - h_s, act2.y - h_s,
 		slim_size, act_size
 	)
 	if(not collide) return false
@@ -1487,6 +1489,8 @@ function intersects_box_box(
 	w1,h1,
 	x2,y2,
 	w2,h2)
+	-- rect(x1,y1,x1+w1,y1+h1, 8)
+	-- rect(x2,y2,x2+w2,y2+h2, 11)
  
 	local xd=x1-x2
 	local xs=w1*0.5+w2*0.5
