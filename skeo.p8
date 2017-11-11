@@ -49,14 +49,12 @@ starting_lives = 5
 player_info = {
 	{
 		player = 0,
-		power_level = 1, --TODO stahp
 		clrs = {5, 6, 7},
 		clr = 6,
 		x = start_x + 8 * 1,
 		lives = starting_lives
 	}, {
 		player = 1,
-		power_level = 3, --TODO stahp
 		clrs = {2, 8, 14},
 		clr = 8,
 		x = start_x + 8 * 13,
@@ -230,6 +228,10 @@ end
 
 function actor:stats()
 	return stats[self.power_level]
+end
+
+function actor:change_power_level(change)
+	self.power_level = mid(1, self.power_level + change, #stats)
 end
 
 function actor:draw()
@@ -841,7 +843,7 @@ end
 
 -- powerups
 --power_up_timeout = 30 * 15 -- 15 seconds
-power_up_timeout = 30 * 5 -- 15 seconds
+power_up_timeout = 30 * 10 -- 10 seconds
 power_up_counter = power_up_timeout
 power_up_char = '\136'
 power_up_clr_neut = 5
@@ -853,6 +855,7 @@ power_up = {
 	type = 'alpha',
 	active = false,
 	clr_index = 1,
+	size = 8,
 }
 function power_up.create()
  -- pick a spot right above the camera
@@ -886,15 +889,37 @@ function power_up.update_all()
 end
 
 function power_up:update()
-	if self.active == false and self.y > cam.y + 64 then
-		self.active = true
-	end
 	if self.y > cam.y + 136 then
 		self:remove()
 	end
+
+	if self.active == false and self.y > cam.y + 64 then
+		self.active = true
+	end
 	self.clr_index += 1
-	-- printh(#power_up_clrs[self.type])
 	if (self.clr_index > #power_up_clrs[self.type]) self.clr_index = 1
+
+	if self.active then
+		for a in all(actors) do 
+			self:collide_with_actor(a)
+		end
+	end
+end
+
+function power_up:collide_with_actor(actor)
+	local offset = actor.collision_offset
+	local act_size = actor.size_px
+	local slim_size = act_size - (offset * 2)
+	local collide = intersects_box_box(
+		actor.x + offset, actor.y,
+		slim_size, act_size,
+		self.x, self.y,
+		self.size, self.size
+	)
+	if(not collide) return false
+	actor:change_power_level(self.type == 'alpha' and -1 or 1)
+	printh(self.type)
+	self:remove()
 end
 
 function power_up:draw()
@@ -914,8 +939,7 @@ function cam:init()
 	self.paralax_factor = 6 -- scrolling frames betweens moving the bg
 	self.x = start_x
 	self.y = start_y
-	-- self.scrolling = dev TODO
-	self.scrolling = false
+	self.scrolling = dev
 	self.max_scroll_tx = starting_scroll_speed
 	self.scroll_tx = starting_scroll_speed
 	self.bg_cooldown = self.paralax_factor
