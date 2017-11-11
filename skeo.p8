@@ -5,6 +5,7 @@ __lua__
 printh("\n\n-------\n-skeo-\n-------")
 
 dev = true
+disable_bg_doodads = true
 
 -- constants
 
@@ -786,6 +787,7 @@ function bg_doodad.update_all()
 end
 
 function bg_doodad.create_doodad(y_offset)
+	if(disable_bg_doodads) return 
 	if(y_offset == nil) y_offset = 0
 	add(bg_doodads, bg_doodad.new(cam.x-16, cam.y-48+y_offset))
 end
