@@ -43,7 +43,7 @@ round_over = false
 default_rot = 30
 round_over_timeout = 30 -- give it a sec to settle down
 tag_length = 3 * 30 -- seconds after a punch a player should get credit for a kill
-starting_lives = 5
+starting_lives = 3
 players = {} -- players in the game
 actors = {} -- living players
 fx = {} -- particles and splosions n stuff
@@ -515,21 +515,21 @@ function actor:explode()
 	add(fx, explosion.new(self.x, self.y, self.clr))
 end
 
+anim_funcs = {
+	'try_downed_anim',
+	'try_punch_anim',
+	'try_climb_anim',
+	'try_jump_anim',
+	'try_run_anim',
+}
 function actor:pick_animation()
-	local anim_funcs = {
-		'try_downed_anim',
-		'try_punch_anim',
-		'try_climb_anim',
-		'try_jump_anim',
-		'try_run_anim',
-	}
 	for func in all(anim_funcs) do
 		if(self[func](self)) return
 	end
 end
 
 function actor:try_downed_anim()
-	-- todo: wtf is all of this holy shit
+	-- TODO: wtf is all of this holy shit
 	if(not self.downed) return false
 	if not includes(fall_anims, self.cur_anim) then -- start falling over
 		local anim = self:falling_fwd() and fall_fwd_anim or fall_bk_anim
@@ -661,6 +661,7 @@ fire_clrs = { 7, 8, 8, 8, 8, 9, 9, 10 }
 fire_speed = 1
 fire_started = false
 fire = {
+	fire = true,
 	x = 0,
 	y = 0,
 	clr = 8,
@@ -698,7 +699,7 @@ end
 -- word class
 nice_words = {
 	'nice!',
-	'rude',
+	'rude.',
 	'murderer!',
 	'\135',
 	'toasty!'
@@ -969,7 +970,7 @@ function cam:init()
 	self.scroll_tx = starting_scroll_speed
 	self.bg_cooldown = self.paralax_factor
 	self.cooldown = scroll_speed_up_cooldown -- change scrolling speed every so often
-	self.shake_remaining=0
+	self.shake_remaining = 0
 	self.shake_force = 0
 end
 
@@ -1058,8 +1059,7 @@ function scroller:init_screens()
 			x = screen_draw_offset * 3,
 			y = 0,
 			draw_width = start_cell_x + screen_width * 4
-		},
-
+		}
 	}
 
 	current_top = 0
@@ -1105,7 +1105,7 @@ function init_fx()
 	power_ups = {}
 end
 
-update_fire = true
+update_fire = true -- only update fire every other frame (less distracting)
 function update_fx()
 	if fire_started then
 		for i=1,10 do
@@ -1114,8 +1114,8 @@ function update_fx()
 	end
 
 	update_fire = not update_fire
-	if update_fire then
-		for f in all(fx) do
+	for f in all(fx) do
+		if update_fire or not f.fire then
 			f:update()
 		end
 	end

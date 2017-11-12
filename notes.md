@@ -3,6 +3,7 @@ NOTES
 
 # THE LAST DAY
 - [X] Speed up scroller after a while (1 minute?)
+- [ ] Invincibility Frames
 - [ ] Clean Up Code
 - [ ] 5 Levels
 - [X] Test / Tweak Powerups
