@@ -8,7 +8,7 @@ NOTES
 - [ ] Test / Tweak Powerups
 - [ ] Test / Tweak Levels
 - [ ] Song Tweaks (see below)
-- [ ] RM BG Doodads?
+- [X] RM BG Doodads?
 
 # BUGS ETC
 - holding down punch button
