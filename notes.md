@@ -5,8 +5,8 @@ NOTES
 - [X] Speed up scroller after a while (1 minute?)
 - [ ] Clean Up Code
 - [ ] 5 Levels
-- [ ] Test / Tweak Powerups
-- [ ] Test / Tweak Levels
+- [X] Test / Tweak Powerups
+- [X] Test / Tweak Levels
 - [ ] Song Tweaks (see below)
 - [X] RM BG Doodads?
 

@@ -4,8 +4,8 @@ __lua__
 
 printh("\n\n-------\n-skeo-\n-------")
 
-dev = true
-disable_bg_doodads = true
+dev = false
+disable_bg_doodads = false
 
 -- constants
 
@@ -1100,7 +1100,7 @@ end
 -- fx stuff
 function init_fx()
 	bg_doodad.init()
-	fire_started = false
+	fire_started = true
 	fx = {}
 	power_ups = {}
 end
@@ -1213,7 +1213,7 @@ function draw_game()
 		f:draw()
 	end
 	if(round_over and #players > 1) draw_round_over()
-	if(dev) draw_stat()
+	if(true or dev) draw_stat()
 end
 
 function draw_round_over()
