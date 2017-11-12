@@ -4,10 +4,10 @@ NOTES
 # THE LAST DAY
 - [X] Speed up scroller after a while (1 minute?)
 - [ ] Invincibility Frames
-- [ ] Clean Up Code
-- [ ] 5 Levels
+- [X] Clean Up Code
+- [v] 5 Levels
 - [X] Test / Tweak Powerups
-- [X] Test / Tweak Levels
+- [v] Test / Tweak Levels
 - [ ] Song Tweaks (see below)
 - [X] RM BG Doodads?
 
